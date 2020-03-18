@@ -1,19 +1,21 @@
-# NodeBB OAuth SSO
+# NodeBB FusionAuth OpenID Connect
 
-NodeBB Plugin that allows users to login/register via any configured OAuth provider. **Please note** that this is not a complete plugin, but merely a skeleton with which you can create your own OAuth SSO plugin for NodeBB (and hopefully share it with others!)
+This plugin allows you to connect to and OpenID provider (not just FusionAuth).
 
-## How to Adapt
+## Installation
 
-1. Fork this plugin
-    * ![](http://i.imgur.com/APWHJsa.png)
-1. Add the OAuth credentials (around line 30 of `library.js`)
-1. Update profile information (around line 137 of `library.js`) with information from the user API call
-1. Activate this plugin from the plugins page
-1. Restart your NodeBB
-1. Let NodeBB take care of the rest
+To install it go to your nodebb instance and search for `OpenID Connect`
 
-## Trouble?
+## Features
 
-The NodeBB team builds out SSO plugins for a nominal fee. [Reach out to us for a quote.](mailto:sales@nodebb.org)
+* OpenID Authentication
+* Partial hot reloading of the authentication strategy. (Everything but the email claim name can be loaded without restarting nodebb)
 
-Find us on [the community forums](http://community.nodebb.org)!
+## How develop
+
+1. Run `npm link` in this directory
+1. Go to your nodebb directory and run `npm ink nodebb-plugin-fusionauth-oidc`
+1. Run `./nodebb build`
+1. Run `./nodebb dev`
+
+If you make changes to the plugin you will need to rebuild and reload. You can do this manually or via the UI.
