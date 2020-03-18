@@ -1,11 +1,11 @@
 {
-  "name": "nodebb-plugin-sso-oauth",
-  "version": "0.3.5",
-  "description": "NodeBB Generic OAuth SSO",
+  "name": "nodebb-plugin-fusionauth-oidc",
+  "version": "1.0.0",
+  "description": "NodeBB Generic OpenID Connect SSO",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/julianlam/nodebb-plugin-sso-oauth"
+    "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc"
   },
   "keywords": [
     "nodebb",
@@ -18,22 +18,20 @@
     "registration"
   ],
   "author": {
-    "name": "Julian Lam",
-    "email": "julian@nodebb.org"
+    "name": "Tyler Scott",
+    "email": "tyler@fusionauth.io"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/julianlam/nodebb-plugin-sso-oauth/issues"
+    "url": "https://github.com/julianlam/nodebb-plugin-fusionauth-oidc/issues"
   },
-  "readme": "",
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "^2",
-    "passport-oauth": "~1.0.0"
+    "passport-openid-oauth20": "^1.0.12"
   },
   "nbbpm": {
-    "compatibility": "^1.0.1",
-    "index": false
+    "compatibility": "^1.0.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
