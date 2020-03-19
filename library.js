@@ -5,6 +5,7 @@
 	const Groups = require.main.require('./src/groups');
 	const db = require.main.require('./src/database');
 	const authenticationController = require.main.require('./src/controllers/authentication');
+	const Settings = require.main.require('./src/settings');
 
 	const async = require('async');
 	const passportOIDC = require('passport-openid-oauth20');
@@ -14,73 +15,114 @@
 	const winston = module.parent.require('winston');
 
 	const constants = {
-		name: 'fusionauthoidc',
-		settings: {
+		name: 'fusionauth-oidc',
+		callbackURL: '/auth/fusionauth-oidc/callback',
+		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
+		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
+			// Default settings
 			clientId: null,
 			clientSecret: null,
-			emailClaim: null, // Which field on user info contains the email
-			discoveryEndpoint: null,
-			authenticationEndpoint: null,
+			emailClaim: 'email',
+			issuer: null,
+			authorizationEndpoint: null,
 			tokenEndpoint: null,
 			userInfoEndpoint: null,
-		},
+		}, false, false),
 	};
 
 	const Oidc = {};
-	Oidc.getStrategy = (strategies, callback) => {
-		// OAuth options
-		// eslint-disable-next-line prefer-const
-		const opts = constants.settings;
-		opts.callbackURL = nconf.get('url') + '/auth/foidc/callback';
 
-		passportOIDC.Strategy.prototype.userProfile = function (token, secret, params, done) {
-			this._oauth.get(constants.userRoute, token, secret, (err, body/* , res */) => {
-				if (err) {
-					return done(err);
-				}
+	/**
+	 * Sets up the router bindings for the settings page
+	 * @param params
+	 * @param callback
+	 */
+	Oidc.init = function (params, callback) {
+		winston.verbose('Setting up FusionAuth OIDC bindings/routes');
 
-				try {
-					const json = JSON.parse(body);
-					Oidc.parseUserReturn(json, (err, profile) => {
-						if (err) return done(err);
-						profile.provider = constants.name;
-
-						done(null, profile);
-					});
-				} catch (e) {
-					done(e);
-				}
+		function render(req, res) {
+			res.render('admin/plugins/fusionauth-oidc', {
+				baseUrl: nconf.get('url'),
 			});
+		}
+
+		params.router.get(constants.pluginSettingsURL, params.middleware.admin.buildHeader, render);
+		params.router.get('/api/admin/plugins/fusionauth-oidc', render);
+
+		callback();
+	};
+
+	/**
+	 * Binds the passport strategy to the global passport object
+	 * @param strategies The global list of strategies
+	 * @param callback
+	 */
+	Oidc.bindStrategy = function (strategies, callback) {
+		winston.verbose('Setting up openid connect');
+
+		callback = callback || function () {
 		};
 
+		constants.pluginSettings.sync(function (err) {
+			if (err) {
+				return callback(err);
+			}
 
-		opts.passReqToCallback = true;
+			const settings = constants.pluginSettings.getWrapper();
 
-		passport.use(constants.name, new passportOIDC(opts, (req, token, secret, profile, done) => {
-			Oidc.login({
-				oAuthid: profile.id,
-				handle: profile.displayName,
-				email: profile.emails[0].value,
-				isAdmin: profile.isAdmin,
-			}, (err, user) => {
-				if (err) {
-					return done(err);
-				}
+			// If we are missing any settings
+			if (!settings.clientId ||
+				!settings.clientSecret ||
+				!settings.emailClaim ||
+				(!settings.issuer &&
+					(!settings.authorizationEndpoint ||
+						!settings.tokenEndpoint ||
+						!settings.userInfoEndpoint))) {
+				winston.info('OpenID Connect will not be available until it is configured!');
+				return callback();
+			}
 
-				authenticationController.onSuccessfulLogin(req, user.uid);
-				done(null, user);
-			});
-		}));
+			const callbackURL = nconf.get('url') + constants.callbackURL;
 
-		strategies.push({
-			name: constants.name,
-			url: '/auth/' + constants.name,
-			callbackURL: '/auth/' + constants.name + '/callback',
-			icon: 'fa-check-square',
-			scope: (constants.scope || '').split(','),
+			const opts = {
+				authorizationURL: settings.authorizationEndpoint,
+				tokenURL: settings.tokenEndpoint,
+				userProfileURL: settings.userInfoEndpoint,
+				clientID: settings.clientId,
+				clientSecret: settings.clientSecret,
+				callbackURL,
+			};
+
+			// If you call this twice it will overwrite the first.
+			passport.use(constants.name, new passportOIDC(opts, (req, token, secret, profile, done) => {
+				Oidc.login({
+					oAuthid: profile.id,
+					handle: profile.displayName,
+					email: profile.emails[0].value,
+					isAdmin: profile.isAdmin,
+				}, (err, user) => {
+					if (err) {
+						return done(err);
+					}
+
+					authenticationController.onSuccessfulLogin(req, user.uid);
+					done(null, user);
+				});
+			}));
+
+			// If we are doing the update, strategies won't be the right object so
+			if (strategies.push) {
+				strategies.push({
+					name: constants.name,
+					url: '/auth/' + constants.name,
+					callbackURL: '/auth/' + constants.name + '/callback',
+					icon: 'fa-openid',
+					scope: ['openid', settings.emailClaim],
+				});
+			}
+
+			callback(null, strategies);
 		});
-
-		callback(null, strategies);
 	};
 
 	Oidc.parseUserReturn = (data, callback) => {
@@ -94,7 +136,7 @@
 		const profile = {
 			id: data.id,
 			displayName: data.name,
-			emails: [{value: data.email}],
+			emails: [{ value: data.email }],
 		};
 
 		// Do you want to automatically make somebody an admin? This line might help you do that...
@@ -192,6 +234,16 @@
 	Oidc.whitelistFields = (params, callback) => {
 		params.whitelist.push(constants.name + 'Id');
 		callback(null, params);
+	};
+
+	Oidc.bindMenuOption = function (header, callback) {
+		winston.verbose('Binding menu option');
+		header.authentication.push({
+			route: constants.pluginSettingsURL.replace('/admin', ''), // They will add the /admin for us
+			name: 'OpenID Connect',
+		});
+
+		callback(null, header);
 	};
 
 	module.exports = Oidc;

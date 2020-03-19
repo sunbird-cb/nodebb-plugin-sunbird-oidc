@@ -11,11 +11,11 @@
 					</div>
 					<div class="form-group">
 						<label for="client_id">Client ID</label>
-						<input class="form-control" id="client_id" name="client_id" type="text">
+						<input class="form-control" id="client_id" name="clientId" type="text">
 					</div>
 					<div class="form-group">
 						<label for="client_secret">Client Secret</label>
-						<input class="form-control" id="client_secret" name="client_secret" type="text">
+						<input class="form-control" id="client_secret" name="clientSecret" type="text">
 					</div>
 					<div class="form-group">
 						<label for="issuer">Issuer</label>
@@ -23,19 +23,19 @@
 					</div>
 					<div class="form-group">
 						<label for="authorization_endpoint">Authorization Endpoint</label>
-						<input class="form-control" id="authorization_endpoint" name="authorization_endpoint" type="text">
+						<input class="form-control" id="authorization_endpoint" name="authorizationEndpoint" type="text">
 					</div>
 					<div class="form-group">
 						<label for="token_endpoint">Token Endpoint</label>
-						<input class="form-control" id="token_endpoint" name="token_endpoint" type="text">
+						<input class="form-control" id="token_endpoint" name="tokenEndpoint" type="text">
 					</div>
 					<div class="form-group">
 						<label for="user_info_endpoint">User Info Endpoint</label>
-						<input class="form-control" id="user_info_endpoint" name="user_info_endpoint" type="text">
+						<input class="form-control" id="user_info_endpoint" name="userInfoEndpoint" type="text">
 					</div>
 					<div class="form-group">
 						<label for="email_claim">Email Claim</label>
-						<input class="form-control" id="email_claim" name="email_claim" type="text">
+						<input class="form-control" id="email_claim" name="emailClaim" type="text">
 					</div>
 				</form>
 			</div>

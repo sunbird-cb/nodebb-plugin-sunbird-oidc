@@ -1,24 +1,37 @@
 {
-	"id": "nodebb-plugin-fusionauth-oidc",
-	"name": "NodeBB OpenID Connect SSO",
-	"description": "NodeBB Plugin that allows users to login/register via any configured OpenID Connect provider.",
-	"url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc",
-	"library": "./library.js",
-	"hooks": [
-		{
-			"hook": "static:user.delete",
-			"method": "deleteUserData"
-		},
-		{
-			"hook": "filter:user.whitelistFields",
-			"method": "whitelistFields"
-		},
-		{
-			"hook": "filter:auth.init",
-			"method": "getStrategy"
-		}
-	],
-	"acpScripts": [
-		"static/lib/admin.js"
-	]
+  "id": "nodebb-plugin-fusionauth-oidc",
+  "name": "NodeBB OpenID Connect SSO",
+  "description": "NodeBB Plugin that allows users to login/register via an OpenID Connect provider.",
+  "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc",
+  "library": "./library.js",
+  "templates": "templates",
+  "hooks": [
+    {
+      "hook": "static:app.load",
+      "method": "init"
+    },
+    {
+      "hook": "static:user.delete",
+      "method": "deleteUserData"
+    },
+    {
+      "hook": "filter:user.whitelistFields",
+      "method": "whitelistFields"
+    },
+    {
+      "hook": "filter:auth.init",
+      "method": "bindStrategy"
+    },
+    {
+      "hook": "filter:admin.header.build",
+      "method": "bindMenuOption"
+    },
+    {
+      "hook": "action:settings.set",
+      "method": "bindStrategy"
+    }
+  ],
+  "acpScripts": [
+    "static/lib/admin.js"
+  ]
 }

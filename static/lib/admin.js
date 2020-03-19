@@ -12,7 +12,7 @@ define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
 						type: 'success',
 						alert_id: 'sso-oidc-saved',
 						title: 'Settings Saved',
-						message: 'Please restart your NodeBB to apply these settings',
+						message: 'If you changed the email claim, you will need to restart before it will be applied.',
 						clickfn: function () {
 							socket.emit('admin.reload');
 						},
