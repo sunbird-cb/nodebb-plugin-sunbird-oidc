@@ -131,7 +131,7 @@
 		// Everything else is optional.
 
 		// Find out what is available by uncommenting this line:
-		// console.log(data);
+		console.log(data);
 
 		const profile = {
 			id: data.id,
@@ -139,14 +139,6 @@
 			emails: [{ value: data.email }],
 		};
 
-		// Do you want to automatically make somebody an admin? This line might help you do that...
-		// profile.isAdmin = data.isAdmin ? true : false;
-
-		// Delete or comment out the next TWO (2) lines when you are ready to proceed
-		process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
-		return callback(new Error('Congrats! So far so good -- please see server log for details'));
-
-		// eslint-disable-next-line
 		callback(null, profile);
 	};
 
