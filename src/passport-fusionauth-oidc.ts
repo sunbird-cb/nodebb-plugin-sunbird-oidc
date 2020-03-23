@@ -1,5 +1,4 @@
 import * as OAuth2Strategy from 'passport-oauth2'
-import fetch from 'node-fetch'
 
 export interface PassportOIDCSettings {
 	clientId: string;
@@ -10,7 +9,6 @@ export interface PassportOIDCSettings {
 	userInfoEndpoint: string;
 	callbackURL: string;
 }
-
 
 export class PassportOIDC extends OAuth2Strategy {
 	public name = "passport-oidc";
@@ -24,20 +22,6 @@ export class PassportOIDC extends OAuth2Strategy {
 			tokenURL: settings.tokenEndpoint,
 			scope: ['openid', settings.emailClaim],
 		}, verifyFunction);
-	}
-
-	static async resolveEndpoints(issuer: string) {
-		let response = await fetch({
-			url: issuer + '/.well-known/openid-configuration',
-			method: 'GET',
-		});
-
-		try {
-			return response.json()
-		} catch (e) {
-			console.error(e);
-			throw new Error(`Failed to parse the response body. Exception was previously logged.`)
-		}
 	}
 
 	// Just to remember these exist

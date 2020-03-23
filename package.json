@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/julianlam/nodebb-plugin-fusionauth-oidc/issues"
+    "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc/issues"
   },
   "readmeFilename": "README.md",
   "dependencies": {
@@ -31,9 +31,7 @@
     "@types/express": "^4.17.3",
     "@types/passport-oauth2": "^1.4.8",
     "async": "^2",
-    "node-fetch": "^2.6.0",
-    "passport-oauth2": "^1.5.0",
-    "passport-openid-oauth20": "^1.0.12"
+    "passport-oauth2": "^1.5.0"
   },
   "nbbpm": {
     "compatibility": "^1.0.1"

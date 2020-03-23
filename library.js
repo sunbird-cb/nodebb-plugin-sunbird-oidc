@@ -9,7 +9,6 @@
 
 	const async = require('async');
 	const { PassportOIDC } = require('./src/passport-fusionauth-oidc');
-	// const PassportOIDC = require('passport-openid-oauth20');
 
 	const passport = module.parent.require('passport');
 	const nconf = module.parent.require('nconf');
@@ -24,7 +23,7 @@
 			clientId: null,
 			clientSecret: null,
 			emailClaim: 'email',
-			issuer: null,
+			discoveryBaseURL: null,
 			authorizationEndpoint: null,
 			tokenEndpoint: null,
 			userInfoEndpoint: null,
@@ -75,10 +74,9 @@
 			if (!settings.clientId ||
 				!settings.clientSecret ||
 				!settings.emailClaim ||
-				(!settings.issuer &&
-					(!settings.authorizationEndpoint ||
-						!settings.tokenEndpoint ||
-						!settings.userInfoEndpoint))) {
+				!settings.authorizationEndpoint ||
+				!settings.tokenEndpoint ||
+				!settings.userInfoEndpoint) {
 				winston.info('OpenID Connect will not be available until it is configured!');
 				return callback();
 			}

@@ -1,19 +1,12 @@
 'use strict';
 
-/* globals $, app, socket, define */
+/* globals $, app, socket, define, fetch */
 define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
 	return {
 		init: function () {
 			settings.load('fusionauth-oidc', $('#fusionauth-oidc-settings'));
 
-			$('#save').on('click', function () {
-				const form = $('#fusionauth-oidc-settings');
-
-				// Trim the fields
-				form.find('input[data-trim="true"]').each(function () {
-					$(this).val($.trim($(this).val()));
-				});
-
+			const save = function (form) {
 				settings.save('fusionauth-oidc', form, function () {
 					app.alert({
 						type: 'success',
@@ -25,6 +18,30 @@ define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
 						},
 					});
 				});
+			};
+
+			$('#save').on('click', function () {
+				const form = $('#fusionauth-oidc-settings');
+
+				// Trim the fields
+				form.find('input[data-trim="true"]').each(function () {
+					$(this).val($.trim($(this).val()));
+				});
+
+				const baseURL = $('input[name="discoveryBaseURL"]').val();
+				if (baseURL) {
+					fetch(baseURL + '/.well-known/openid-configuration')
+						.then((res) => res.json())
+						.then((json) => {
+							$('input[name="authorizationEndpoint"]').val(json.authorization_endpoint);
+							$('input[name="tokenEndpoint"]').val(json.token_endpoint);
+							$('input[name="userInfoEndpoint"]').val(json.userinfo_endpoint);
+							save(form);
+						})
+						.catch(console.error);
+				} else {
+					save(form);
+				}
 			});
 		},
 	};
