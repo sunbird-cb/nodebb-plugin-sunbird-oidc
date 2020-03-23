@@ -222,4 +222,6 @@ node_modules/
 ####################
 
 .idea
-/nodebb/
+nodebb
+src/passport-fusionauth-oidc.js
+/src/passport-fusionauth-oidc.js.map

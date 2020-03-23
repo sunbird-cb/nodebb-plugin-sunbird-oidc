@@ -7,9 +7,6 @@
 			<div class="panel-body">
 				<form id="fusionauth-oidc-settings" role="form">
 					<div class="form-group">
-
-					</div>
-					<div class="form-group">
 						<label for="client_id">Client ID</label>
 						<input class="form-control" id="client_id" name="clientId" data-key="clientId" data-trim="true" type="text">
 					</div>

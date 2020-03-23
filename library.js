@@ -8,7 +8,8 @@
 	const Settings = require.main.require('./src/settings');
 
 	const async = require('async');
-	const passportOIDC = require('passport-openid-oauth20');
+	const { PassportOIDC } = require('./src/passport-fusionauth-oidc');
+	// const PassportOIDC = require('passport-openid-oauth20');
 
 	const passport = module.parent.require('passport');
 	const nconf = module.parent.require('nconf');
@@ -82,24 +83,16 @@
 				return callback();
 			}
 
-			const callbackURL = nconf.get('url') + constants.callbackURL;
-
-			const opts = {
-				authorizationURL: settings.authorizationEndpoint,
-				tokenURL: settings.tokenEndpoint,
-				userProfileURL: settings.userInfoEndpoint,
-				clientID: settings.clientId,
-				clientSecret: settings.clientSecret,
-				callbackURL,
-			};
+			settings.callbackURL = nconf.get('url') + constants.callbackURL;
 
 			// If you call this twice it will overwrite the first.
-			passport.use(constants.name, new passportOIDC(opts, (req, token, secret, profile, done) => {
+			passport.use(constants.name, new PassportOIDC(settings, (req, token, secret, profile, done) => {
+				const email = profile[constants.pluginSettings.getWrapper().emailClaim || 'email'];
 				Oidc.login({
-					oAuthid: profile.id,
-					handle: profile.displayName,
-					email: profile.emails[0].value,
-					isAdmin: profile.isAdmin,
+					oAuthid: profile.sub,
+					username: profile.preferred_username || email.split('@')[0],
+					email: email,
+					// isAdmin: profile.isAdmin,
 				}, (err, user) => {
 					if (err) {
 						return done(err);
@@ -125,24 +118,7 @@
 		});
 	};
 
-	Oidc.parseUserReturn = (data, callback) => {
-		// Alter this section to include whatever data is necessary
-		// NodeBB *requires* the following: id, displayName, emails.
-		// Everything else is optional.
-
-		// Find out what is available by uncommenting this line:
-		console.log(data);
-
-		const profile = {
-			id: data.id,
-			displayName: data.name,
-			emails: [{ value: data.email }],
-		};
-
-		callback(null, profile);
-	};
-
-	Oidc.login = (payload, callback) => {
+	Oidc.login = function (payload, callback) {
 		Oidc.getUidByOAuthid(payload.oAuthid, (err, uid) => {
 			if (err) {
 				return callback(err);
@@ -173,6 +149,10 @@
 					}
 				};
 
+				if (!payload.email) {
+					return callback(new Error('The email was missing from the user, we cannot log them in.'));
+				}
+
 				User.getUidByEmail(payload.email, (err, uid) => {
 					if (err) {
 						return callback(err);
@@ -180,7 +160,7 @@
 
 					if (!uid) {
 						User.create({
-							username: payload.handle,
+							username: payload.username,
 							email: payload.email,
 						}, (err, uid) => {
 							if (err) {
@@ -197,7 +177,7 @@
 		});
 	};
 
-	Oidc.getUidByOAuthid = (oAuthid, callback) => {
+	Oidc.getUidByOAuthid = function (oAuthid, callback) {
 		db.getObjectField(constants.name + 'Id:uid', oAuthid, (err, uid) => {
 			if (err) {
 				return callback(err);
@@ -206,7 +186,7 @@
 		});
 	};
 
-	Oidc.deleteUserData = (data, callback) => {
+	Oidc.deleteUserData = function (data, callback) {
 		async.waterfall([
 			async.apply(User.getUserField, data.uid, constants.name + 'Id'),
 			(oAuthIdToDelete, next) => {
@@ -223,7 +203,7 @@
 	};
 
 	// If this filter is not there, the deleteUserData function will fail when getting the oauthId for deletion.
-	Oidc.whitelistFields = (params, callback) => {
+	Oidc.whitelistFields = function (params, callback) {
 		params.whitelist.push(constants.name + 'Id');
 		callback(null, params);
 	};

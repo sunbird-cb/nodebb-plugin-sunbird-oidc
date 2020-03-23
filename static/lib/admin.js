@@ -7,7 +7,14 @@ define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
 			settings.load('fusionauth-oidc', $('#fusionauth-oidc-settings'));
 
 			$('#save').on('click', function () {
-				settings.save('fusionauth-oidc', $('#fusionauth-oidc-settings'), function () {
+				const form = $('#fusionauth-oidc-settings');
+
+				// Trim the fields
+				form.find('input[data-trim="true"]').each(function () {
+					$(this).val($.trim($(this).val()));
+				});
+
+				settings.save('fusionauth-oidc', form, function () {
 					app.alert({
 						type: 'success',
 						alert_id: 'sso-oidc-saved',
