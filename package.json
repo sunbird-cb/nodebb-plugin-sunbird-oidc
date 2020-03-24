@@ -1,7 +1,7 @@
 {
   "name": "nodebb-plugin-fusionauth-oidc",
-  "version": "1.0.0",
-  "description": "NodeBB Generic OpenID Connect SSO",
+  "version": "1.0.1",
+  "description": "Authenticate to FusionAuth or any OpenID Connect identity provider.",
   "main": "library.js",
   "repository": {
     "type": "git",
