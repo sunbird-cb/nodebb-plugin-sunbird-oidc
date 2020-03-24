@@ -21,7 +21,7 @@
     "name": "Tyler Scott",
     "email": "tyler@fusionauth.io"
   },
-  "license": "MIT",
+  "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc/issues"
   },
