@@ -47,7 +47,7 @@ export class PassportOIDC extends OAuth2Strategy {
 			}
 
 			if (res.statusCode > 299 || res.statusCode < 200) {
-				return done(new Error(`Unexpected response from userInfo. [${res.statusCode}]`))
+				return done(new Error(`Unexpected response from userInfo. [${res.statusCode}] [${body}]`))
 			}
 
 			try {

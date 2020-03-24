@@ -56,5 +56,8 @@
       "eslint --fix",
       "git add"
     ]
+  },
+  "scripts": {
+    "prepare": "tsc src/*.ts"
   }
 }
