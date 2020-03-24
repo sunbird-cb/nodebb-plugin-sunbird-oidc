@@ -1,7 +1,7 @@
 {
   "id": "nodebb-plugin-fusionauth-oidc",
-  "name": "NodeBB OpenID Connect SSO",
-  "description": "NodeBB Plugin that allows users to login/register via an OpenID Connect provider.",
+  "name": "OpenID Connect Plugin for NodeBB",
+  "description": "Authenticate to FusionAuth or any OpenID Connect identity provider.",
   "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc",
   "library": "./library.js",
   "templates": "templates",
