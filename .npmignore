@@ -10,3 +10,4 @@ commitlint.config.json
 .gitattributes
 .eslintrc
 *.ts
+readme-images
