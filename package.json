@@ -43,7 +43,8 @@
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.1",
     "husky": "^4.2.3",
-    "lint-staged": "^10.0.8"
+    "lint-staged": "^10.0.8",
+    "typescript": "^3.8.3"
   },
   "husky": {
     "hooks": {
@@ -58,6 +59,6 @@
     ]
   },
   "scripts": {
-    "prepare": "tsc src/*.ts"
+    "prepare": "npx tsc src/*.ts"
   }
 }
