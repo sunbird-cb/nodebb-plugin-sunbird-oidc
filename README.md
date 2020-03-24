@@ -1,6 +1,6 @@
 # NodeBB FusionAuth OpenID Connect
 
-This plugin allows you to connect to and OpenID provider (not just FusionAuth).
+This plugin allows you to connect to FusionAuth or any OpenID Connect provider.
 
 ## Installation
 
@@ -8,7 +8,7 @@ To install it go to your nodebb instance and search for `OpenID Connect`
 
 ## Features
 
-* OpenID Authentication
+* OpenID Connect Authentication using the Authorization Code grant.
 * Partial hot reloading of the authentication strategy. (Everything but the email claim name can be loaded without restarting nodebb)
 
 ## How develop
