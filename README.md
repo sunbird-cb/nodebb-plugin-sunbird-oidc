@@ -23,7 +23,7 @@ This plugin allows you to connect to FusionAuth or any OpenID Connect provider.
 
 From the OpenID Connect page you can configure this plugin. You will need your client id and secret from your provider as well as that providers base URL.
 
-1. Fill in the client id/client secret fields
+1. Fill in the client id/client secret fields (Example: https://fusionauth.io/docs/v1/tech/core-concepts/applications#oauth)
 1. Type in the base url for your provider (in most cases this will be the domain + protocol) (Ex: https://local.fusionauth.io)
 1. Fill in the email claim with `email` (this should be default but may be missing)
 1. Click save
