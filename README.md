@@ -62,6 +62,8 @@ Once you complete this configuration and save the form, you will need to restart
 
 This plugin will work with any OpenID Connect identity provider. If you are using FusionAuth, the values needed for this configuration will be found in your Application OAuth configuration. For more information, review the [OAuth configuration](https://fusionauth.io/docs/v1/tech/core-concepts/applications#oauth) tab of the Application configuration in the FusionAuth documentation.
 
+If your provider requires a callback url then use `https://<domain>/auth/fusionauth-oidc/callback`
+
 ### Additional Configuration
 
 If you want to skip the login page and always use the configured OpenID Connect identity provider for authentication you will need to disable Login Login and Local Registration.

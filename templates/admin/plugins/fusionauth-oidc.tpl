@@ -2,10 +2,16 @@
 	<div class="col-xs-12">
 		<div class="panel panel-default">
 			<div class="panel-heading">
-				<h3 class="panel-title">OpenID Connect Authentication</h3>
+				<h2 class="panel-title" style="font-size: 22px; text-transform: capitalize;">OpenID Connect Configuration</h2>
 			</div>
 			<div class="panel-body">
-				<form id="fusionauth-oidc-settings" role="form">
+				<div class="alert alert-info" style="font-size: small;">Configure NodeBB to authenticate usign an OpenID Connect
+					identity provider. See the GitHub project <a
+							href="https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc">README</a> for additional information.
+					<a
+							href="https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc">https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc</a>
+				</div>
+				<form class="mt-3" id="fusionauth-oidc-settings" role="form" style="margin-top: 15px;">
 					<div class="form-group">
 						<label for="client_id">Client ID</label>
 						<input class="form-control" data-trim="true" id="client_id" name="clientId" type="text">
@@ -33,14 +39,18 @@
 					</div>
 					<div class="form-group">
 						<label for="email_claim">Email claim</label>
-						<input class="form-control" data-trim="true" id="email_claim" name="emailClaim" type="text">
+						<input class="form-control" data-trim="true" id="email_claim" name="emailClaim" type="text" value="email">
 					</div>
 				</form>
+				<div style="font-size: small; display: flex; margin-top: 30px;">
+					<div style="width: 48px; margin-right: 10px;">
+						<img src="https://fusionauth.io/assets/img/favicon-96x96.png" style="width: 100%;"></div>
+					<div>
+						Maintained by <a href="https://fusionauth.io">FusionAuth</a> <br> <a
+							href="https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc">https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc</a>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
-
-<button class="floating-button mdl-button mdl-button--fab mdl-button--colored" id="save">
-	<i class="material-icons">save</i>
-</button>
