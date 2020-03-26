@@ -11,28 +11,28 @@
 						<input class="form-control" data-trim="true" id="client_id" name="clientId" type="text">
 					</div>
 					<div class="form-group">
-						<label for="client_secret">Client Secret</label>
+						<label for="client_secret">Client secret</label>
 						<input class="form-control" data-trim="true" id="client_secret" name="clientSecret" type="text">
 					</div>
 					<div class="form-group">
-						<label for="discovery_base_url">Discovery base url</label>
+						<label for="discovery_base_url">Discovery URL</label>
 						<input class="form-control" data-trim="true" id="discovery_base_url" name="discoveryBaseURL" type="text">
 					</div>
 					<div class="form-group">
-						<label for="authorization_endpoint">Authorization Endpoint</label>
+						<label for="authorization_endpoint">Authorization endpoint</label>
 						<input class="form-control" data-trim="true" id="authorization_endpoint" name="authorizationEndpoint"
 						       type="text">
 					</div>
 					<div class="form-group">
-						<label for="token_endpoint">Token Endpoint</label>
+						<label for="token_endpoint">Token endpoint</label>
 						<input class="form-control" data-trim="true" id="token_endpoint" name="tokenEndpoint" type="text">
 					</div>
 					<div class="form-group">
-						<label for="user_info_endpoint">User Info Endpoint</label>
+						<label for="user_info_endpoint">Userinfo endpoint</label>
 						<input class="form-control" data-trim="true" id="user_info_endpoint" name="userInfoEndpoint" type="text">
 					</div>
 					<div class="form-group">
-						<label for="email_claim">Email Claim</label>
+						<label for="email_claim">Email claim</label>
 						<input class="form-control" data-trim="true" id="email_claim" name="emailClaim" type="text">
 					</div>
 				</form>
