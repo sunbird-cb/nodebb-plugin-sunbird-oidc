@@ -30,15 +30,31 @@ define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
 
 				const baseURL = $('input[name="discoveryBaseURL"]').val();
 				if (baseURL) {
+					const errorFunc = () => {
+						app.alert({
+							type: 'danger',
+							alert_id: 'sso-oidc-error',
+							title: 'An error occurred ',
+							message: 'An error has occurred while trying to discover the OIDC configuration. Make sure that this platform supports the well known configuration url and that you have the right url.',
+						});
+					};
+
+					const timeout = setTimeout(errorFunc, 5000);
+
 					fetch(baseURL + '/.well-known/openid-configuration')
 						.then((res) => res.json())
 						.then((json) => {
+							clearTimeout(timeout);
 							$('input[name="authorizationEndpoint"]').val(json.authorization_endpoint);
 							$('input[name="tokenEndpoint"]').val(json.token_endpoint);
 							$('input[name="userInfoEndpoint"]').val(json.userinfo_endpoint);
 							save(form);
 						})
-						.catch(console.error);
+						.catch((e) => {
+							clearTimeout(timeout);
+							console.error(e);
+							errorFunc();
+						});
 				} else {
 					save(form);
 				}

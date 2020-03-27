@@ -5,7 +5,7 @@
 				<h2 class="panel-title" style="font-size: 22px; text-transform: capitalize;">OpenID Connect Configuration</h2>
 			</div>
 			<div class="panel-body">
-				<div class="alert alert-info" style="font-size: small;">Configure NodeBB to authenticate usign an OpenID Connect
+				<div style="font-size: smaller;">Configure NodeBB to authenticate usign an OpenID Connect
 					identity provider. See the GitHub project <a
 							href="https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc">README</a> for additional information.
 					<a
@@ -42,7 +42,7 @@
 						<input class="form-control" data-trim="true" id="email_claim" name="emailClaim" type="text" value="email">
 					</div>
 				</form>
-				<div style="font-size: small; display: flex; margin-top: 30px;">
+				<div style="font-size: smaller; display: flex; margin-top: 30px;">
 					<div style="width: 48px; margin-right: 10px;">
 						<img src="https://fusionauth.io/assets/img/favicon-96x96.png" style="width: 100%;"></div>
 					<div>
@@ -54,3 +54,7 @@
 		</div>
 	</div>
 </div>
+
+<button class="floating-button mdl-button mdl-button--fab mdl-button--colored" id="save">
+	<i class="material-icons">save</i>
+</button>
