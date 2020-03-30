@@ -91,6 +91,7 @@
 					oAuthid: profile.sub,
 					username: profile.preferred_username || email.split('@')[0],
 					email: email,
+					rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 					isAdmin: isAdmin,
 				}, (err, user) => {
 					if (err) {
@@ -119,7 +120,9 @@
 
 	Oidc.login = function (payload, callback) {
 		async.waterfall([
+			// Lookup user by existing oauthid
 			(callback) => Oidc.getUidByOAuthid(payload.oAuthid, callback),
+			// Skip if we found the user in the pevious step or create the user
 			function (uid, callback) {
 				if (uid !== null) {
 					// Existing user
@@ -152,21 +155,27 @@
 					], callback);
 				}
 			},
-			function (uid, callback) {
-				if (payload.isAdmin === true) {
-					async.waterfall([
-						(callback) => Groups.isMember(uid, 'administrators', callback),
-						(isMember, callback) => {
-							if (!isMember) {
-								Groups.join('administrators', uid, callback);
-							} else {
-								callback(null);
-							}
-						},
-					], (err) => {
-						callback(err, uid);
-					});
+			// Get the users membership status to admins
+			(uid, callback) => Groups.isMember(uid, 'administrators', (err, isMember) => {
+				callback(err, uid, isMember);
+			}),
+			// If the plugin is configured to use roles, add or remove them from the admin group (if necessary)
+			(uid, isMember, callback) => {
+				if (payload.rolesEnabled) {
+					if (payload.isAdmin === true && !isMember) {
+						Groups.join('administrators', uid, (err) => {
+							callback(err, uid);
+						});
+					} else if (payload.isAdmin === false && isMember) {
+						Groups.leave('administrators', uid, (err) => {
+							callback(err, uid);
+						});
+					} else {
+						// Continue
+						callback(null, uid);
+					}
 				} else {
+					// Continue
 					callback(null, uid);
 				}
 			},
