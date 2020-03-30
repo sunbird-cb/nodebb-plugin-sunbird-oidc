@@ -57,8 +57,10 @@ Once you complete this configuration and save the form, you will need to restart
 |Discovery URL | When provided, this URL will be used to find the OpenID Connect discovery document. This URL will be appended with `.well-known/openid-configuration`. If this URL returns a JSON discovery document the remaining endpoints will be automatically resolved when you press the Save button. |
 |Authorization endpoint | The fully qualified URL to the Authorization endpoint. |
 |Token endpoint | The fully qualified URL to the Token endpoint. |
-|Userinfo endpoint |  The fully qualified URL to the Userinfo endpoint. |
+|Userinfo endpoint | The fully qualified URL to the Userinfo endpoint. |
+|Logout endpoint | The location of your OIDC providers logout. If present, this will redirect the user to this location when they click logout in NodeBB. It is up to the OIDC provider to redirect back to nodebb. | 
 |Email claim | The name of the claim found in the response from the Userinfo endpoint that identifies the user's email address. This is generally `email` and is the default value. |
+|Roles claim | If present, on login we will check this claim for the value `"admin"` and if present, give the user access to the admin panel. The claim value can either be a string or array of strings. Anything else will be treated as the user having no roles. |
 
 This plugin will work with any OpenID Connect identity provider. If you are using FusionAuth, the values needed for this configuration will be found in your Application OAuth configuration. For more information, review the [OAuth configuration](https://fusionauth.io/docs/v1/tech/core-concepts/applications#oauth) tab of the Application configuration in the FusionAuth documentation.
 
