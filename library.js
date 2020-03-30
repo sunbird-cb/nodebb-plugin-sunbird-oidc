@@ -84,20 +84,21 @@
 			settings.callbackURL = nconf.get('url') + constants.callbackURL;
 
 			// If you call this twice it will overwrite the first.
-			passport.use(constants.name, new PassportOIDC(settings, (req, token, secret, profile, done) => {
-				const email = profile[constants.pluginSettings.getWrapper().emailClaim || 'email'];
+			passport.use(constants.name, new PassportOIDC(settings, (req, accessToken, refreshToken, profile, callback) => {
+				const email = profile[settings.emailClaim || 'email'];
+				const isAdmin = settings.rolesClaim ? (profile[settings.rolesClaim] === 'admin' || (profile[settings.rolesClaim].some && profile[settings.rolesClaim].some((value) => value === 'admin'))) : false;
 				Oidc.login({
 					oAuthid: profile.sub,
 					username: profile.preferred_username || email.split('@')[0],
 					email: email,
-					// isAdmin: profile.isAdmin,
+					isAdmin: isAdmin,
 				}, (err, user) => {
 					if (err) {
-						return done(err);
+						return callback(err);
 					}
 
 					authenticationController.onSuccessfulLogin(req, user.uid);
-					done(null, user);
+					callback(null, user);
 				});
 			}));
 
@@ -117,61 +118,65 @@
 	};
 
 	Oidc.login = function (payload, callback) {
-		Oidc.getUidByOAuthid(payload.oAuthid, (err, uid) => {
+		async.waterfall([
+			(callback) => Oidc.getUidByOAuthid(payload.oAuthid, callback),
+			function (uid, callback) {
+				if (uid !== null) {
+					// Existing user
+					callback(null, uid);
+				} else {
+					// New User
+					if (!payload.email) {
+						return callback(new Error('The email was missing from the user, we cannot log them in.'));
+					}
+
+					async.waterfall([
+						(callback) => User.getUidByEmail(payload.email, callback),
+						function (uid, callback) {
+							if (!uid) {
+								User.create({
+									username: payload.username,
+									email: payload.email,
+								}, callback);
+							} else {
+								callback(null, uid); // Existing account -- merge
+							}
+						},
+						function (uid, callback) {
+							// Save provider-specific information to the user
+							User.setUserField(uid, constants.name + 'Id', payload.oAuthid);
+							db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
+
+							callback(null, uid);
+						},
+					], callback);
+				}
+			},
+			function (uid, callback) {
+				if (payload.isAdmin === true) {
+					async.waterfall([
+						(callback) => Groups.isMember(uid, 'administrators', callback),
+						(isMember, callback) => {
+							if (!isMember) {
+								Groups.join('administrators', uid, callback);
+							} else {
+								callback(null);
+							}
+						},
+					], (err) => {
+						callback(err, uid);
+					});
+				} else {
+					callback(null, uid);
+				}
+			},
+		], function (err, uid) {
 			if (err) {
 				return callback(err);
 			}
-
-			if (uid !== null) {
-				// Existing User
-				callback(null, {
-					uid: uid,
-				});
-			} else {
-				// New User
-				const success = (uid) => {
-					// Save provider-specific information to the user
-					User.setUserField(uid, constants.name + 'Id', payload.oAuthid);
-					db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
-
-					if (payload.isAdmin) {
-						Groups.join('administrators', uid, (err) => {
-							callback(err, {
-								uid: uid,
-							});
-						});
-					} else {
-						callback(null, {
-							uid: uid,
-						});
-					}
-				};
-
-				if (!payload.email) {
-					return callback(new Error('The email was missing from the user, we cannot log them in.'));
-				}
-
-				User.getUidByEmail(payload.email, (err, uid) => {
-					if (err) {
-						return callback(err);
-					}
-
-					if (!uid) {
-						User.create({
-							username: payload.username,
-							email: payload.email,
-						}, (err, uid) => {
-							if (err) {
-								return callback(err);
-							}
-
-							success(uid);
-						});
-					} else {
-						success(uid); // Existing account -- merge
-					}
-				});
-			}
+			callback(null, {
+				uid: uid,
+			});
 		});
 	};
 
@@ -214,6 +219,23 @@
 		});
 
 		callback(null, header);
+	};
+
+	Oidc.redirectLogout = function (payload, callback) {
+		const settings = constants.pluginSettings.getWrapper();
+
+		if (settings.logoutEndpoint) {
+			winston.verbose('Changing logout to OpenID logout');
+			let separator;
+			if (settings.logoutEndpoint.indexOf('?') === -1) {
+				separator = '?';
+			} else {
+				separator = '&';
+			}
+			payload.next = settings.logoutEndpoint + separator + 'client_id=' + settings.clientId;
+		}
+
+		return callback(null, payload);
 	};
 
 	module.exports = Oidc;

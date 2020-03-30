@@ -13,7 +13,7 @@ export interface PassportOIDCSettings {
 export class PassportOIDC extends OAuth2Strategy {
 	public name = "passport-oidc";
 
-	constructor(private settings: PassportOIDCSettings, verifyFunction: OAuth2Strategy.VerifyFunction) {
+	constructor(private settings: PassportOIDCSettings, verifyFunction: OAuth2Strategy.VerifyFunctionWithRequest) {
 		super({
 			clientID: settings.clientId,
 			clientSecret: settings.clientSecret,
@@ -21,6 +21,7 @@ export class PassportOIDC extends OAuth2Strategy {
 			authorizationURL: settings.authorizationEndpoint,
 			tokenURL: settings.tokenEndpoint,
 			scope: ['openid', settings.emailClaim],
+			passReqToCallback: true,
 		}, verifyFunction);
 	}
 

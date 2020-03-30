@@ -2,6 +2,17 @@
 
 /* globals $, app, socket, define, fetch */
 define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
+	const updateField = function (selector, value) {
+		if (!value) {
+			return;
+		}
+
+		const element = $(selector);
+		if (!element.val()) {
+			element.val(value);
+		}
+	};
+
 	return {
 		init: function () {
 			settings.load('fusionauth-oidc', $('#fusionauth-oidc-settings'));
@@ -45,9 +56,10 @@ define('admin/plugins/fusionauth-oidc', ['settings'], function (settings) {
 						.then((res) => res.json())
 						.then((json) => {
 							clearTimeout(timeout);
-							$('input[name="authorizationEndpoint"]').val(json.authorization_endpoint);
-							$('input[name="tokenEndpoint"]').val(json.token_endpoint);
-							$('input[name="userInfoEndpoint"]').val(json.userinfo_endpoint);
+							updateField('input[name="authorizationEndpoint"]', json.authorization_endpoint);
+							updateField('input[name="tokenEndpoint"]', json.token_endpoint);
+							updateField('input[name="userInfoEndpoint"]', json.userinfo_endpoint);
+							updateField('input[name="logoutEndpoint"]', json.end_session_endpoint);
 							save(form);
 						})
 						.catch((e) => {

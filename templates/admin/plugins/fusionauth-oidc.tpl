@@ -38,8 +38,16 @@
 						<input class="form-control" data-trim="true" id="user_info_endpoint" name="userInfoEndpoint" type="text">
 					</div>
 					<div class="form-group">
+						<label for="user_info_endpoint">Logout endpoint</label>
+						<input class="form-control" data-trim="true" id="logout_endpoint" name="logoutEndpoint" type="text">
+					</div>
+					<div class="form-group">
 						<label for="email_claim">Email claim</label>
 						<input class="form-control" data-trim="true" id="email_claim" name="emailClaim" type="text" value="email">
+					</div>
+					<div class="form-group">
+						<label for="email_claim">Roles claim</label>
+						<input class="form-control" data-trim="true" id="roles_claim" name="rolesClaim" type="text">
 					</div>
 				</form>
 				<div style="font-size: smaller; display: flex; margin-top: 30px;">

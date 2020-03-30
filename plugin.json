@@ -29,6 +29,10 @@
     {
       "hook": "action:settings.set",
       "method": "bindStrategy"
+    },
+    {
+      "hook": "filter:user.logout",
+      "method": "redirectLogout"
     }
   ],
   "acpScripts": [
