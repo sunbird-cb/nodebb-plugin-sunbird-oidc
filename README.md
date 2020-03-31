@@ -58,7 +58,7 @@ Once you complete this configuration and save the form, you will need to restart
 |Authorization endpoint | The fully qualified URL to the Authorization endpoint. |
 |Token endpoint | The fully qualified URL to the Token endpoint. |
 |Userinfo endpoint | The fully qualified URL to the Userinfo endpoint. |
-|Logout endpoint | The location of your OIDC providers logout. If present, this will redirect the user to this location when they click logout in NodeBB. It is up to the OIDC provider to redirect back to nodebb. | 
+|Logout endpoint | The fully qualified URL of the OpenID Connect logout endpoint. If configured, the browser will be redirected to this URL when you click logout in NodeBB.  | 
 |Email claim | The name of the claim found in the response from the Userinfo endpoint that identifies the user's email address. This is generally `email` and is the default value. |
 |Roles claim | If present, on login we will check this claim for the value `"admin"` and if present, give the user access to the admin panel. The claim value can either be a string or array of strings. Anything else will be treated as the user having no roles. |
 
