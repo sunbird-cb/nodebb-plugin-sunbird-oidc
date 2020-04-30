@@ -31,7 +31,7 @@ If you find any issue or a missing feature, please open an issue.
 1. Click the `Install` button on the `nodebb-plugin-fusionauth-oidc` result
 1. Click `Installed` from the sub-menu
 1. Find the `nodebb-plugin-fusionauth-oidc` plugin and click `Activate`
-1. Restart NodeBB
+1. Rebuild and restart NodeBB
 1. Refresh the page to regenerate the menu
 
 
