@@ -1,8 +1,8 @@
 {
-  "id": "nodebb-plugin-fusionauth-oidc",
-  "name": "OpenID Connect Plugin for NodeBB",
-  "description": "Authenticate to FusionAuth or any OpenID Connect identity provider.",
-  "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc",
+  "id": "nodebb-plugin-sunbird-oidc",
+  "name": "Sunbird OpenID Connect Plugin for NodeBB",
+  "description": "Authenticate to Sunbird OpenID Connect identity provider.",
+  "url": "https://github.com/vrayulu/nodebb-plugin-sunbird-oidc",
   "library": "./library.js",
   "templates": "templates",
   "hooks": [
