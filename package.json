@@ -10,6 +10,7 @@
   "keywords": [
     "nodebb",
     "plugin",
+    "sunbird",
     "oauth",
     "oauth2",
     "sso",
@@ -17,18 +18,14 @@
     "login",
     "registration"
   ],
-  "author": {
-    "name": "Tyler Scott",
-    "email": "tyler@fusionauth.io"
-  },
   "license": "BSD-2-Clause",
-  "bugs": {
-    "url": "https://github.com/vrayulu/nodebb-plugin-sunbird-oidc/issues"
-  },
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "^2",
-    "passport-oauth2": "vrayulu/sb-passport-oauth2"
+    "passport-custom": "^1.1.1",
+    "request": "2.81.0",
+    "uid2": "0.0.x",
+    "request-promise": "^4.2.6"
   },
   "nbbpm": {
     "compatibility": "^1.0.1"
@@ -48,7 +45,6 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
@@ -57,7 +53,5 @@
       "git add"
     ]
   },
-  "scripts": {
-    "prepare": "npx tsc src/*.ts"
-  }
+  "scripts": {}
 }

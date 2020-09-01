@@ -7,8 +7,11 @@
 	const authenticationController = require.main.require('./src/controllers/authentication');
 	const Settings = require.main.require('./src/settings');
 
+	const url = require('url');
+	const uid = require('uid2');
 	const async = require('async');
-	const { PassportOIDC } = require('./src/passport-fusionauth-oidc');
+	const request = require('request-promise');
+	const CustomStrategy = require('passport-custom');
 
 	const passport = module.parent.require('passport');
 	const nconf = module.parent.require('nconf');
@@ -52,6 +55,32 @@
 		callback();
 	};
 
+	Oidc.getAccessToken = async function (settings, code) {
+		const options = {
+			method: 'POST',
+			url: settings.tokenEndpoint,
+			form: {
+				grant_type: 'authorization_code',
+				client_id: settings.clientId,
+				client_secret: settings.clientSecret,
+				code: code,
+				redirect_uri: settings.callbackURL
+			}
+		}
+		return request(options);
+	};
+
+	Oidc.getUserInfo = async function (settings, accessToken) {
+		const options = {
+			method: 'GET',
+			url: settings.userInfoEndpoint,
+			headers: {
+				'Authorization': 'Bearer ' + accessToken
+			}
+		}
+		return request(options);
+	};
+
 	/**
 	 * Binds the passport strategy to the global passport object
 	 * @param strategies The global list of strategies
@@ -83,25 +112,57 @@
 
 			settings.callbackURL = nconf.get('url') + constants.callbackURL;
 
-			// If you call this twice it will overwrite the first.
-			passport.use(constants.name, new PassportOIDC(settings, (req, accessToken, refreshToken, profile, callback) => {
-				const email = profile[settings.emailClaim || 'email'];
-				const isAdmin = settings.rolesClaim ? (profile[settings.rolesClaim] === 'admin' || (profile[settings.rolesClaim].some && profile[settings.rolesClaim].some((value) => value === 'admin'))) : false;
-				Oidc.login({
-					oAuthid: profile.sub,
-					username: profile.preferred_username || email.split('@')[0],
-					email: email,
-					rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
-					isAdmin: isAdmin,
-				}, (err, user) => {
-					if (err) {
-						return callback(err);
-					}
+			// // If you call this twice it will overwrite the first.
+			passport.use(constants.name, new CustomStrategy(
+				async function(req, callback) {
+					var profile = {};
+					if (!req.query || (!req.query.code && !req.query.access_token)) {
+						var state = uid(24);
+						const authUrl = new URL(settings.authorizationEndpoint);
+						authUrl.searchParams.append("client_id", settings.clientId);
+						authUrl.searchParams.append("state", state);
+						authUrl.searchParams.append("response_type", "code");
+						authUrl.searchParams.append("scope", ['openid', settings.emailClaim]);
+						authUrl.searchParams.append("redirect_uri", settings.callbackURL);
+						req.session.ssoState = state;
+						this.redirect(authUrl.href);
+					} else {
+						var accessToken = "";
+						if (req.query.access_token) {
+							accessToken = req.query.access_token;
+						} else if (req.query.code) {
+							try {
+								var response = await Oidc.getAccessToken(settings, req.query.code);
+								var json = JSON.parse(response);
+								accessToken = json.access_token;
+							} catch (err) {
+								return callback(err);
+							}
+						}
+						try {
+							var userInfo = await Oidc.getUserInfo(settings, accessToken);
+							console.log('userInfo: ' + userInfo);
+							profile = JSON.parse(userInfo);
+						} catch (err) {
+							return callback(err);
+						}
 
-					authenticationController.onSuccessfulLogin(req, user.uid);
-					callback(null, user);
-				});
-			}));
+						Oidc.login({
+							oAuthid: profile.sub,
+							username: profile.preferred_username || profile.email.split('@')[0],
+							email: profile.email,
+							rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
+							isAdmin: false,
+						}, (err, user) => {
+							if (err) {
+								return callback(err);
+							}
+							authenticationController.onSuccessfulLogin(req, user.uid);
+							callback(null, user);
+						});
+					}
+				}
+			));
 
 			// If we are doing the update, strategies won't be the right object so
 			if (strategies.push) {
@@ -111,7 +172,7 @@
 					callbackURL: '/auth/' + constants.name + '/callback',
 					icon: 'fa-openid',
 					scope: ['openid', settings.emailClaim],
-					checkState: false,
+					checkState: true,
 				});
 			}
 
@@ -225,7 +286,7 @@
 		winston.verbose('Binding menu option');
 		header.authentication.push({
 			route: constants.pluginSettingsURL.replace('/admin', ''), // They will add the /admin for us
-			name: 'OpenID Connect',
+			name: 'Sunbird SSO',
 		});
 
 		callback(null, header);
