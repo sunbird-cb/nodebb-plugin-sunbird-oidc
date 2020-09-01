@@ -1,11 +1,11 @@
 {
-  "name": "nodebb-plugin-fusionauth-oidc",
+  "name": "nodebb-plugin-sunbird-oidc",
   "version": "1.0.1",
-  "description": "Authenticate to FusionAuth or any OpenID Connect identity provider.",
+  "description": "Authenticate to Sunbird OpenID Connect identity provider.",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc"
+    "url": "https://github.com/vrayulu/nodebb-plugin-sunbird-oidc"
   },
   "keywords": [
     "nodebb",
@@ -23,12 +23,12 @@
   },
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/FusionAuth/nodebb-plugin-fusionauth-oidc/issues"
+    "url": "https://github.com/vrayulu/nodebb-plugin-sunbird-oidc/issues"
   },
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "^2",
-    "passport-oauth2": "^1.5.0"
+    "passport-oauth2": "vrayulu/sb-passport-oauth2"
   },
   "nbbpm": {
     "compatibility": "^1.0.1"
@@ -48,8 +48,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {

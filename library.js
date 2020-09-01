@@ -111,6 +111,7 @@
 					callbackURL: '/auth/' + constants.name + '/callback',
 					icon: 'fa-openid',
 					scope: ['openid', settings.emailClaim],
+					checkState: false,
 				});
 			}
 
