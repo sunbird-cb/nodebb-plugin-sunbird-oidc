@@ -29,6 +29,7 @@
 			discoveryBaseURL: null,
 			authorizationEndpoint: null,
 			tokenEndpoint: null,
+			ssoTokenEndpoint: null,
 			userInfoEndpoint: null,
 			emailDomain: null
 		}, false, false),
@@ -56,7 +57,7 @@
 		callback();
 	};
 
-	Oidc.getAccessToken = async function (settings, code) {
+	Oidc.getAccessTokenFromCode = async function (settings, code) {
 		const options = {
 			method: 'POST',
 			url: settings.tokenEndpoint,
@@ -67,6 +68,16 @@
 				code: code,
 				redirect_uri: settings.callbackURL
 			}
+		}
+		return request(options);
+	};
+
+	Oidc.getAccessTokenFromId = async function (settings, id) {
+		const tokenUrl = new URL(settings.ssoTokenEndpoint);
+		tokenUrl.searchParams.append("id", id);
+		const options = {
+			method: 'GET',
+			url: tokenUrl.href
 		}
 		return request(options);
 	};
@@ -106,6 +117,7 @@
 				!settings.emailClaim ||
 				!settings.authorizationEndpoint ||
 				!settings.tokenEndpoint ||
+				!settings.ssoTokenEndpoint ||
 				!settings.userInfoEndpoint ||
 				!settings.emailDomain) {
 				winston.info('Sunbird SSO will not be available until it is configured!');
@@ -118,6 +130,7 @@
 			passport.use(constants.name, new CustomStrategy(
 				async function(req, callback) {
 					var profile = {};
+					// if request is not yet authenticated, redirect to login page
 					if (!req.query || (!req.query.code && !req.query.access_token)) {
 						var state = uid(24);
 						const authUrl = new URL(settings.authorizationEndpoint);
@@ -131,10 +144,21 @@
 					} else {
 						var accessToken = "";
 						if (req.query.access_token) {
+							// if request has access token, use it to fetch user info
 							accessToken = req.query.access_token;
-						} else if (req.query.code) {
+						} else if (req.query.id) {
+							// if request has id, invoke sunbird session create API to get token for this id
 							try {
-								var response = await Oidc.getAccessToken(settings, req.query.code);
+								var response = await Oidc.getAccessTokenFromId(settings, req.query.id);
+								var json = JSON.parse(response);
+								accessToken = json.access_token;
+							} catch (err) {
+								return callback(err);
+							}
+						} else if (req.query.code) {
+							// if request has code, get access token from keycloak
+							try {
+								var response = await Oidc.getAccessTokenFromCode(settings, req.query.code);
 								var json = JSON.parse(response);
 								accessToken = json.access_token;
 							} catch (err) {
@@ -142,6 +166,7 @@
 							}
 						}
 						try {
+							// fetch user info
 							var userInfo = await Oidc.getUserInfo(settings, accessToken);
 							console.log('userInfo: ' + userInfo);
 							profile = JSON.parse(userInfo);
@@ -149,10 +174,12 @@
 							return callback(err);
 						}
 
+						// username must be present
 						if (!profile.preferred_username || profile.preferred_username == '') {
 							return callback(new Error('Username was missing from the user.'));
 						}
 
+						// construct the email using the username and domain name
 						var email = profile.preferred_username + '@' + settings.emailDomain;
 						Oidc.login({
 							oAuthid: profile.sub,
