@@ -18,8 +18,8 @@
 	const winston = module.parent.require('winston');
 
 	const constants = {
-		name: 'fusionauth-oidc',
-		callbackURL: '/auth/fusionauth-oidc/callback',
+		name: 'sunbird-oidc',
+		callbackURL: '/auth/sunbird-oidc/callback',
 		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
 		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
 			// Default settings
@@ -42,7 +42,7 @@
 	 * @param callback
 	 */
 	Oidc.init = function (params, callback) {
-		winston.verbose('Setting up FusionAuth OIDC bindings/routes');
+		winston.verbose('Setting up Sunbird OIDC bindings/routes');
 
 		function render(req, res) {
 			res.render('admin/plugins/fusionauth-oidc', {
