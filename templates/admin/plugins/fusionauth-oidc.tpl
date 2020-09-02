@@ -38,6 +38,10 @@
 						<label for="user_info_endpoint">Logout endpoint</label>
 						<input class="form-control" data-trim="true" id="logout_endpoint" name="logoutEndpoint" type="text">
 					</div>
+					<div class="form-group">
+						<label for="email_domain">Email Domain</label>
+						<input class="form-control" data-trim="true" id="email_domain" name="emailDomain" type="text">
+					</div>
 				</form>
 			</div>
 		</div>

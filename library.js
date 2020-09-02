@@ -30,6 +30,7 @@
 			authorizationEndpoint: null,
 			tokenEndpoint: null,
 			userInfoEndpoint: null,
+			emailDomain: null
 		}, false, false),
 	};
 
@@ -105,8 +106,9 @@
 				!settings.emailClaim ||
 				!settings.authorizationEndpoint ||
 				!settings.tokenEndpoint ||
-				!settings.userInfoEndpoint) {
-				winston.info('OpenID Connect will not be available until it is configured!');
+				!settings.userInfoEndpoint ||
+				!settings.emailDomain) {
+				winston.info('Sunbird SSO will not be available until it is configured!');
 				return callback();
 			}
 
@@ -147,10 +149,15 @@
 							return callback(err);
 						}
 
+						if (!profile.preferred_username || profile.preferred_username == '') {
+							return callback(new Error('Username was missing from the user.'));
+						}
+
+						var email = profile.preferred_username + '@' + settings.emailDomain;
 						Oidc.login({
 							oAuthid: profile.sub,
-							username: profile.preferred_username || profile.email.split('@')[0],
-							email: profile.email,
+							username: profile.preferred_username,
+							email: email,
 							rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 							isAdmin: false,
 						}, (err, user) => {

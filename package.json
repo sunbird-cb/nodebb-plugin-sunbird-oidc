@@ -44,8 +44,7 @@
     "typescript": "^3.8.3"
   },
   "husky": {
-    "hooks": {
-    }
+    "hooks": {}
   },
   "lint-staged": {
     "*.js": [
