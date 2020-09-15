@@ -165,6 +165,9 @@
 								return callback(err);
 							}
 						}
+						if (req.query.returnTo && req.query.returnTo != '') {
+							req.session.returnTo = req.query.returnTo;
+						}
 						try {
 							// fetch user info
 							var userInfo = await Oidc.getUserInfo(settings, accessToken);
