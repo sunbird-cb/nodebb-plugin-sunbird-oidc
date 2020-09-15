@@ -166,6 +166,7 @@
 							}
 						}
 						if (req.query.returnTo && req.query.returnTo != '') {
+							// if returnTo path is provided, set it to session for nodebb to redirect to the specified URL after login
 							req.session.returnTo = req.query.returnTo;
 						}
 						try {
