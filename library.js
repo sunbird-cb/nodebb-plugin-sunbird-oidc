@@ -110,7 +110,8 @@
 			}
 
 			const settings = constants.pluginSettings.getWrapper();
-
+			//added as removed from UI
+			settings.emailClaim = 'email';
 			// If we are missing any settings
 			if (!settings.clientId ||
 				!settings.clientSecret ||
