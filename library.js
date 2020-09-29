@@ -20,6 +20,7 @@
 	const constants = {
 		name: 'sunbird-oidc',
 		callbackURL: '/auth/sunbird-oidc/callback',
+		createUserURL: '/api/user/v1/create',
 		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
 		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
 			// Default settings
@@ -37,6 +38,40 @@
 
 	const Oidc = {};
 
+
+	Oidc.createUser = async function (req, res, next) {
+		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
+		var response = {
+		  "id": "api.discussions.user.create",
+		  "ver": "1.0",
+		  "params": {
+		    "resmsgid": msgid,
+		    "msgid": msgid
+		  },
+		  "responseCode": ""
+		}
+		if(req.body && req.body.request && req.body.request.username && req.body.request.identifier){
+			let userId = await User.getUidByUsername(req.body.request.username);
+			if(userId){
+				response.responseCode = "RESOURCE_NOT_FOUND";
+				response.params.status = "unsuccessful";
+				response.params.msg = "User already Exists";
+			}else{
+				const settings = constants.pluginSettings.getWrapper();
+				var email = req.body.request.username + '@' + settings.emailDomain;
+				userId = await User.create({username: req.body.request.username, email: email});
+				response.responseCode = "OK"
+				response.params.status = "successful";		
+				response.params.msg = "User created successful";		
+				response.result = { "userId" : userId };
+			}
+			res.json(response);
+		}else{
+			response.responseCode = "RESOURCE_NOT_FOUND"
+			res.json(response);
+		}	  
+	}
+
 	/**
 	 * Sets up the router bindings for the settings page
 	 * @param params
@@ -53,6 +88,8 @@
 
 		params.router.get(constants.pluginSettingsURL, params.middleware.admin.buildHeader, render);
 		params.router.get('/api/admin/plugins/fusionauth-oidc', render);
+		params.router.post(constants.createUserURL, Oidc.createUser);
+
 
 		callback();
 	};
