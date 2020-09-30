@@ -53,7 +53,8 @@
 		if(req.body && req.body.request && req.body.request.username && req.body.request.identifier){
 			let userId = await User.getUidByUsername(req.body.request.username);
 			if(userId){
-				response.responseCode = "RESOURCE_NOT_FOUND";
+				response.responseCode = "CLIENT_ERROR";
+				response.responseCode = "400"
 				response.params.status = "unsuccessful";
 				response.params.msg = "User already Exists";
 			}else{
@@ -67,7 +68,8 @@
 			}
 			res.json(response);
 		}else{
-			response.responseCode = "RESOURCE_NOT_FOUND"
+			response.responseCode = "CLIENT_ERROR"
+			response.responseCode = "400"
 			res.json(response);
 		}	  
 	}
