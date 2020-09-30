@@ -20,6 +20,7 @@
 	const constants = {
 		name: 'sunbird-oidc',
 		callbackURL: '/auth/sunbird-oidc/callback',
+		createUserURL: '/api/user/v1/create',
 		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
 		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
 			// Default settings
@@ -37,6 +38,52 @@
 
 	const Oidc = {};
 
+
+	Oidc.createUser = async function (req, res, next) {
+		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
+		var response = {
+		  "id": "api.discussions.user.create",
+		  "ver": "1.0",
+		  "params": {
+		    "resmsgid": msgid,
+		    "msgid": msgid
+		  },
+		  "responseCode": ""
+		}
+		if(req.body && req.body.request && req.body.request.username && req.body.request.identifier){
+			const settings = constants.pluginSettings.getWrapper();
+			var email = req.body.request.username + '@' + settings.emailDomain;			
+			Oidc.login({
+				oAuthid: req.body.request.identifier,
+				username: req.body.request.username,
+				email: email,
+				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
+				isAdmin: false,
+			}, (err, user) => {	
+					if(err && err === 'UserExists'){
+						response.responseCode = "CLIENT_ERROR";
+						response.responseCode = "400";
+						response.params.status = "unsuccessful";
+						response.params.msg = "User already Exists";
+					}else if(user){
+						response.responseCode = "OK"
+						response.params.status = "successful";		
+						response.params.msg = "User created successful";		
+						response.result = { "userId" : user };
+					}else{
+						response.responseCode = "SERVER_ERROR"
+						response.responseCode = "400"
+						console.log(err);						
+					}				
+					res.json(response);
+			});
+		}else{
+			response.responseCode = "CLIENT_ERROR"
+			response.responseCode = "400"
+			res.json(response);
+		}	  
+	}
+
 	/**
 	 * Sets up the router bindings for the settings page
 	 * @param params
@@ -53,6 +100,8 @@
 
 		params.router.get(constants.pluginSettingsURL, params.middleware.admin.buildHeader, render);
 		params.router.get('/api/admin/plugins/fusionauth-oidc', render);
+		params.router.post(constants.createUserURL, Oidc.createUser);
+
 
 		callback();
 	};
@@ -173,7 +222,6 @@
 						try {
 							// fetch user info
 							var userInfo = await Oidc.getUserInfo(settings, accessToken);
-							console.log('userInfo: ' + userInfo);
 							profile = JSON.parse(userInfo);
 						} catch (err) {
 							return callback(err);
@@ -193,7 +241,7 @@
 							rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 							isAdmin: false,
 						}, (err, user) => {
-							if (err) {
+							if (err && err !== 'UserExists') {
 								return callback(err);
 							}
 							authenticationController.onSuccessfulLogin(req, user.uid);
@@ -227,7 +275,7 @@
 			function (uid, callback) {
 				if (uid !== null) {
 					// Existing user
-					callback(null, uid);
+					callback("UserExists", uid);
 				} else {
 					// New User
 					if (!payload.email) {
@@ -243,14 +291,13 @@
 									email: payload.email,
 								}, callback);
 							} else {
-								callback(null, uid); // Existing account -- merge
+								callback("UserExists", uid); // Existing account -- merge
 							}
 						},
 						function (uid, callback) {
 							// Save provider-specific information to the user
 							User.setUserField(uid, constants.name + 'Id', payload.oAuthid);
 							db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
-
 							callback(null, uid);
 						},
 					], callback);
@@ -281,10 +328,10 @@
 				}
 			},
 		], function (err, uid) {
-			if (err) {
+			if (err && err !== 'UserExists') {
 				return callback(err);
 			}
-			callback(null, {
+			callback(err, {
 				uid: uid,
 			});
 		});
