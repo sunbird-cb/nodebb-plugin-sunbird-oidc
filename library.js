@@ -51,22 +51,32 @@
 		  "responseCode": ""
 		}
 		if(req.body && req.body.request && req.body.request.username && req.body.request.identifier){
-			let userId = await User.getUidByUsername(req.body.request.username);
-			if(userId){
-				response.responseCode = "CLIENT_ERROR";
-				response.responseCode = "400"
-				response.params.status = "unsuccessful";
-				response.params.msg = "User already Exists";
-			}else{
-				const settings = constants.pluginSettings.getWrapper();
-				var email = req.body.request.username + '@' + settings.emailDomain;
-				userId = await User.create({username: req.body.request.username, email: email});
-				response.responseCode = "OK"
-				response.params.status = "successful";		
-				response.params.msg = "User created successful";		
-				response.result = { "userId" : userId };
-			}
-			res.json(response);
+			const settings = constants.pluginSettings.getWrapper();
+			var email = req.body.request.username + '@' + settings.emailDomain;			
+			Oidc.login({
+				oAuthid: req.body.request.identifier,
+				username: req.body.request.username,
+				email: email,
+				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
+				isAdmin: false,
+			}, (err, user) => {	
+					if(err && err === 'UserExists'){
+						response.responseCode = "CLIENT_ERROR";
+						response.responseCode = "400";
+						response.params.status = "unsuccessful";
+						response.params.msg = "User already Exists";
+					}else if(user){
+						response.responseCode = "OK"
+						response.params.status = "successful";		
+						response.params.msg = "User created successful";		
+						response.result = { "userId" : user };
+					}else{
+						response.responseCode = "SERVER_ERROR"
+						response.responseCode = "400"
+						console.log(err);						
+					}				
+					res.json(response);
+			});
 		}else{
 			response.responseCode = "CLIENT_ERROR"
 			response.responseCode = "400"
@@ -212,7 +222,6 @@
 						try {
 							// fetch user info
 							var userInfo = await Oidc.getUserInfo(settings, accessToken);
-							console.log('userInfo: ' + userInfo);
 							profile = JSON.parse(userInfo);
 						} catch (err) {
 							return callback(err);
@@ -232,7 +241,7 @@
 							rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 							isAdmin: false,
 						}, (err, user) => {
-							if (err) {
+							if (err && err !== 'UserExists') {
 								return callback(err);
 							}
 							authenticationController.onSuccessfulLogin(req, user.uid);
@@ -266,7 +275,7 @@
 			function (uid, callback) {
 				if (uid !== null) {
 					// Existing user
-					callback(null, uid);
+					callback("UserExists", uid);
 				} else {
 					// New User
 					if (!payload.email) {
@@ -282,14 +291,13 @@
 									email: payload.email,
 								}, callback);
 							} else {
-								callback(null, uid); // Existing account -- merge
+								callback("UserExists", uid); // Existing account -- merge
 							}
 						},
 						function (uid, callback) {
 							// Save provider-specific information to the user
 							User.setUserField(uid, constants.name + 'Id', payload.oAuthid);
 							db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
-
 							callback(null, uid);
 						},
 					], callback);
@@ -320,10 +328,10 @@
 				}
 			},
 		], function (err, uid) {
-			if (err) {
+			if (err && err !== 'UserExists') {
 				return callback(err);
 			}
-			callback(null, {
+			callback(err, {
 				uid: uid,
 			});
 		});
