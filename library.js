@@ -65,11 +65,12 @@
 						response.responseCode = "400";
 						response.params.status = "unsuccessful";
 						response.params.msg = "User already Exists";
+						response.result = { "userId" : user, "userName": req.body.request.username };
 					}else if(user){
 						response.responseCode = "OK"
 						response.params.status = "successful";		
 						response.params.msg = "User created successful";		
-						response.result = { "userId" : user };
+						response.result = { "userId" : user, "userName": req.body.request.username };
 					}else{
 						response.responseCode = "SERVER_ERROR"
 						response.responseCode = "400"
@@ -252,7 +253,7 @@
 			));
 
 			// If we are doing the update, strategies won't be the right object so
-			if (strategies.push) {
+			if (strategies) {
 				strategies.push({
 					name: constants.name,
 					url: '/auth/' + constants.name,
