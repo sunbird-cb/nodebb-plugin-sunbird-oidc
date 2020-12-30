@@ -17,10 +17,24 @@
 	const nconf = module.parent.require('nconf');
 	const winston = module.parent.require('winston');
 
+	const configData = require.main.require('./config.json')
+	const mongoose = require('mongoose');
+	const { Schema } = mongoose;
+	const forumSchema = new Schema({ 
+		sbType: String,
+		cid: Number,
+		sbIdentifier: String 
+	});
+	const mongoDbConnectionUrl =  `mongodb://${configData.mongo.host}:${configData.mongo.port}/${configData.mongo.database}`;
+	mongoose.connect(mongoDbConnectionUrl);
+	const sbCategoryModel = mongoose.model('sbcategory', forumSchema);
+
 	const constants = {
 		name: 'sunbird-oidc',
 		callbackURL: '/auth/sunbird-oidc/callback',
 		createUserURL: '/api/user/v1/create',
+		getSBForum : '/api/forumId',
+		createSBForum : '/api/forum',
 		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
 		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
 			// Default settings
@@ -38,7 +52,62 @@
 
 	const Oidc = {};
 
+	Oidc.createForum = function (req,res,next) {
+		const payload = req.body;
+		let resObj = {
+		  id: 'api.discussions.category.forum',
+		  status: 'successful',
+		  resCode: 'OK',
+		  data: null
+		} 
+		const SbObj = new sbCategoryModel(payload);
+		if( payload ) {
+		console.log("Creating the forum");
+		SbObj.save().then(data => {
+		  console.log("forum created");
+		  resObj.data = data;
+		  res.send(successResponse(resObj))
+		}).catch(error => {
+		  console.log("Error while Creating the forum");
+		  resObj.status = 'failed';
+		  resObj.resCode = 'SERVER_ERROR';
+		  resObj.err = error.status;
+		  resObj.errmsg = error.message;
+		  res.send(errorResponse(resObj));
+		});
+		}
+	}
 
+	function successResponse(resObj) {
+		return {
+		  id: resObj.id,
+		  ver: '1.0',
+		  ets: Date.now(),
+		  params: {
+			msgid: resObj.msgId ? resObj.msgId : '',
+			status: resObj.status
+		  },
+		  responseCode: resObj.resCode,
+		  result: resObj.data
+		}
+	  }
+
+	function errorResponse(resObj) {
+		return {
+		  id: resObj.id,
+		  ver: '1.0',
+		  ets: Date.now(),
+		  params: {
+			msgid: resObj.msgId ? resObj.msgId : '',
+			status: resObj.status,
+			err: resObj.err ? resObj.err : '',
+			errmsg: resObj.errmsg ? resObj.errmsg : ''
+		  },
+		  responseCode: resObj.resCode,
+		  result: {}
+		}
+	  }
+	  
 	Oidc.createUser = async function (req, res, next) {
 		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
 		var response = {
@@ -103,6 +172,10 @@
 		params.router.get('/api/admin/plugins/fusionauth-oidc', render);
 		params.router.post(constants.createUserURL, Oidc.createUser);
 
+		// forum routes
+		// params.router.post(constants.getSBForum, Oidc.getForum);
+		params.router.post(constants.createSBForum, Oidc.createForum);
+		
 
 		callback();
 	};

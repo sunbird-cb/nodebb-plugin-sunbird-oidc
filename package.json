@@ -22,10 +22,11 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "^2",
+    "mongoose": "^5.11.9",
     "passport-custom": "^1.1.1",
     "request": "2.81.0",
-    "uid2": "0.0.x",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "uid2": "0.0.x"
   },
   "nbbpm": {
     "compatibility": "^1.0.1"
