@@ -41,7 +41,7 @@
 
 	const Oidc = {};
 
-	Oidc.checkUserTokens = function(url, uid) {
+	Oidc.checkUserTokens = function(masterToken, url, uid) {
 		return new Promise((resolve, reject) => {
 			console.log("SB OIDC Token: checkUserTokens called")
 			const tocken_read_api = `${url}/api/v1/users/${uid}/tokens?_uid=${uid}`;
@@ -50,7 +50,7 @@
 				url: tocken_read_api,
 				method: 'GET',
 				headers: {
-				'Authorization': 'Bearer 419a8911-200a-4a78-b6eb-e51366758e90'
+				'Authorization': masterToken
 				}
 			};
 					
@@ -60,7 +60,7 @@
 				const tokens = lodash.get(body, 'payload.tokens');
 				if(lodash.isEmpty(tokens)) {
 					try {
-						const tokens = await Oidc.createUserTokens(url, uid);
+						const tokens = await Oidc.createUserTokens(masterToken, url, uid);
 						resolve(tokens)
 					}catch(err) {
 						console.log("SB OIDC Token Error: error at createUsertoken promise handler ", err);
@@ -78,7 +78,7 @@
 		})
 	}
 
-	Oidc.createUserTokens = function(url, uid) {
+	Oidc.createUserTokens = function(masterToken, url, uid) {
 		return new Promise((resolve, reject) =>{
 			console.log("SB OIDC Token: createUserTokens called");
 			const create_user_token = `${url}/api/v2/users/${uid}/tokens`;
@@ -91,7 +91,7 @@
 				},
 				json: true,
 				headers: {
-				  'Authorization': 'Bearer 419a8911-200a-4a78-b6eb-e51366758e90'
+				  'Authorization': masterToken
 				}
 			  };
 			  
@@ -110,6 +110,7 @@
 
 	Oidc.createUser = async function (req, res, next) {
 		const url = req.protocol + '://' + req.get('host');
+		const masterToken = req.headers['authorization'];
 		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
 		var response = {
 		  "id": "api.discussions.user.create",
@@ -138,9 +139,9 @@
 						response.result = { "userId" : user, "userName": req.body.request.username };
 						console.log('SB OIDC Token: getting checkUserTokens for already register user');
 						try {
-							const tokenData = await Oidc.checkUserTokens(url, user.uid);
-							const userTOken = lodash.get(tokenData, 'payload.tokens');
-							res.setHeader("nodebb_auth_token", userTOken[0])
+							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
+							const userToken = lodash.get(tokenData, 'payload.tokens');
+							res.setHeader("nodebb_auth_token", userToken[0])
 							res.json(response);
 						} catch(error) {
 							console.log("SB OIDC Token: Error While checkig the tokens", error)
@@ -153,9 +154,9 @@
 						response.result = { "userId" : user, "userName": req.body.request.username };
 						console.log('SB OIDC Token: getting checkUserTokens for newly register user');
 						try {
-							const tokenData = await Oidc.checkUserTokens(url, user.uid);
-							const userTOken = lodash.get(tokenData, 'payload.tokens');
-							res.setHeader("nodebb_auth_token", userTOken[0])
+							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
+							const userToken = lodash.get(tokenData, 'payload.token');
+							res.setHeader("nodebb_auth_token", userToken)
 							res.json(response);
 						}catch (error) {
 							console.log("SB OIDC Token: Error While checkig the tokens", error)
