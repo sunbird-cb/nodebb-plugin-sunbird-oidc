@@ -16,11 +16,14 @@
 	const passport = module.parent.require('passport');
 	const nconf = module.parent.require('nconf');
 	const winston = module.parent.require('winston');
+	console.log('nodebb plugin sunbird oidc working');
+	let lodash = require('lodash');
 
 	const constants = {
 		name: 'sunbird-oidc',
 		callbackURL: '/auth/sunbird-oidc/callback',
 		createUserURL: '/api/user/v1/create',
+		createUserToken: '/api/v2/users/:uid/tokens',
 		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
 		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
 			// Default settings
@@ -38,8 +41,76 @@
 
 	const Oidc = {};
 
+	Oidc.checkUserTokens = function(masterToken, url, uid) {
+		return new Promise((resolve, reject) => {
+			console.log("SB OIDC Token: checkUserTokens called")
+			const tocken_read_api = `${url}/api/v1/users/${uid}/tokens?_uid=${uid}`;
+			
+			const options = {
+				url: tocken_read_api,
+				method: 'GET',
+				headers: {
+				'Authorization': masterToken
+				}
+			};
+					
+			request(options).then(async (body) => {
+				console.log("SB OIDC Token: Success ", body);
+				body = JSON.parse(body)
+				const tokens = lodash.get(body, 'payload.tokens');
+				if(lodash.isEmpty(tokens)) {
+					try {
+						const tokens = await Oidc.createUserTokens(masterToken, url, uid);
+						resolve(tokens)
+					}catch(err) {
+						console.log("SB OIDC Token Error: error at createUsertoken promise handler ", err);
+						reject(err);
+					}
+				}else {
+					console.log("SB OIDC Token already present: ", body);
+					resolve(body);
+				}
+			}).catch(error => {
+					const err = {"error": error.message};
+					console.log("SB OIDC Token Error: error at checkUserTokens ", error.message);
+					reject(err);
+			});
+		})
+	}
+
+	Oidc.createUserTokens = function(masterToken, url, uid) {
+		return new Promise((resolve, reject) =>{
+			console.log("SB OIDC Token: createUserTokens called");
+			const create_user_token = `${url}/api/v2/users/${uid}/tokens`;
+			console.log('SB OIDC Token: creating token using', create_user_token);
+			const options = {
+				url: create_user_token,
+				method: 'POST',
+				body: {
+					"_uid": uid
+				},
+				json: true,
+				headers: {
+				  'Authorization': masterToken
+				}
+			  };
+			  
+			  request(options).then(body => {
+				console.log("SB OIDC Token: Token created successfully", body);
+				resolve(body);
+			  }).catch(error => {
+				console.log("SB OIDC Token Error: error at createUserTokens ", error.message);
+				  const err = {
+					  error: error.message
+				  }
+				  reject(err)
+			  })
+		})
+	}
 
 	Oidc.createUser = async function (req, res, next) {
+		const url = req.protocol + '://' + req.get('host');
+		const masterToken = req.headers['authorization'];
 		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
 		var response = {
 		  "id": "api.discussions.user.create",
@@ -59,24 +130,45 @@
 				email: email,
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
-			}, (err, user) => {	
+			}, async (err, user) => {	
 					if(err && err === 'UserExists'){
 						response.responseCode = "CLIENT_ERROR";
 						response.responseCode = "400";
 						response.params.status = "unsuccessful";
 						response.params.msg = "User already Exists";
 						response.result = { "userId" : user, "userName": req.body.request.username };
+						console.log('SB OIDC Token: getting checkUserTokens for already register user');
+						try {
+							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
+							const userToken = lodash.get(tokenData, 'payload.tokens');
+							res.setHeader("nodebb_auth_token", userToken[0])
+							res.json(response);
+						} catch(error) {
+							console.log("SB OIDC Token: Error While checkig the tokens", error)
+						}
+						
 					}else if(user){
 						response.responseCode = "OK"
 						response.params.status = "successful";		
 						response.params.msg = "User created successful";		
 						response.result = { "userId" : user, "userName": req.body.request.username };
+						console.log('SB OIDC Token: getting checkUserTokens for newly register user');
+						try {
+							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
+							const userToken = lodash.get(tokenData, 'payload.token');
+							res.setHeader("nodebb_auth_token", userToken)
+							res.json(response);
+						}catch (error) {
+							console.log("SB OIDC Token: Error While checkig the tokens", error)
+						}
+						
 					}else{
 						response.responseCode = "SERVER_ERROR"
 						response.responseCode = "400"
-						console.log(err);						
+						console.log(err);
+						res.json(response);						
 					}				
-					res.json(response);
+					
 			});
 		}else{
 			response.responseCode = "CLIENT_ERROR"
