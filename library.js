@@ -109,8 +109,6 @@
 	}
 
 	Oidc.createUser = async function (req, res, next) {
-		const url = req.protocol + '://' + req.get('host');
-		const masterToken = req.headers['authorization'];
 		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
 		var response = {
 		  "id": "api.discussions.user.create",
@@ -131,6 +129,9 @@
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
 			}, async (err, user) => {	
+				const urlSlug = req.originalUrl.substr(0, req.originalUrl.indexOf(constants.createUserURL))
+				const url = req.protocol + '://' + req.get('host')+ urlSlug;
+				const masterToken = req.headers['authorization'];
 					if(err && err === 'UserExists'){
 						response.responseCode = "CLIENT_ERROR";
 						response.responseCode = "400";
