@@ -44,7 +44,6 @@
 	Oidc.checkUserTokens = function(masterToken, url, uid) {
 		return new Promise((resolve, reject) => {
 			console.log("SB OIDC Token: checkUserTokens called")
-			//https://staging.sunbirded.org/discussions/api/v1/users/2/tokens?_uid=2
 			const tocken_read_api = `${url}/api/v1/users/${uid}/tokens?_uid=${uid}`;
 			
 			const options = {
