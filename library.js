@@ -129,8 +129,11 @@
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
 			}, async (err, user) => {	
-				const urlSlug = req.originalUrl.substr(0, req.originalUrl.indexOf(constants.createUserURL))
+				const urlSlug = req.originalUrl.substr(req.originalUrl.indexOf(constants.createUserURL), 1)
 				const url = req.protocol + '://' + req.get('host')+ urlSlug;
+				console.log('SB OIDC Token: request url substring:',  req.originalUrl.indexOf(constants.createUserURL));
+				console.log('SB OIDC Token: request url:', url, 'slug: ',  urlSlug, 'path: ', req.path);
+				console.log('SB OIDC Token: request original url:', req.originalUrl);
 				const masterToken = req.headers['authorization'];
 					if(err && err === 'UserExists'){
 						response.responseCode = "CLIENT_ERROR";
