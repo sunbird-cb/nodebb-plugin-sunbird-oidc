@@ -44,6 +44,7 @@
 	Oidc.checkUserTokens = function(masterToken, url, uid) {
 		return new Promise((resolve, reject) => {
 			console.log("SB OIDC Token: checkUserTokens called")
+			//https://staging.sunbirded.org/discussions/api/v1/users/2/tokens?_uid=2
 			const tocken_read_api = `${url}/api/v1/users/${uid}/tokens?_uid=${uid}`;
 			
 			const options = {
@@ -129,8 +130,11 @@
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
 			}, async (err, user) => {	
-				const urlSlug = req.originalUrl.substr(0, req.originalUrl.indexOf(constants.createUserURL))
+				const urlSlug = req.originalUrl.substr(req.originalUrl.indexOf(constants.createUserURL), 1)
 				const url = req.protocol + '://' + req.get('host')+ urlSlug;
+				console.log('SB OIDC Token: request url substring:',  req.originalUrl.indexOf(constants.createUserURL));
+				console.log('SB OIDC Token: request url:', url, 'slug: ',  urlSlug, 'path: ', req.path);
+				console.log('SB OIDC Token: request original url:', req.originalUrl);
 				const masterToken = req.headers['authorization'];
 					if(err && err === 'UserExists'){
 						response.responseCode = "CLIENT_ERROR";
