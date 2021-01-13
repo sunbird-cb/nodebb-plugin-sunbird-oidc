@@ -43,7 +43,7 @@
 
 	Oidc.checkUserTokens = function(masterToken, url, uid) {
 		return new Promise((resolve, reject) => {
-			console.log("SB OIDC Token: checkUserTokens called")
+			console.log("SB OIDC Token: checkUserTokens called with UID: ", uid)
 			const tocken_read_api = `${url}/api/v1/users/${uid}/tokens?_uid=${uid}`;
 			
 			const options = {
@@ -53,13 +53,14 @@
 				'Authorization': masterToken
 				}
 			};
-					
+			console.log("SB OIDC Token check request: ", options)	
 			request(options).then(async (body) => {
 				console.log("SB OIDC Token: Success ", body);
 				body = JSON.parse(body)
 				const tokens = lodash.get(body, 'payload.tokens');
 				if(lodash.isEmpty(tokens)) {
 					try {
+						console.log("SB OIDC TOKENs are empty: ", tokens);
 						const tokens = await Oidc.createUserTokens(masterToken, url, uid);
 						resolve(tokens)
 					}catch(err) {
@@ -80,7 +81,7 @@
 
 	Oidc.createUserTokens = function(masterToken, url, uid) {
 		return new Promise((resolve, reject) =>{
-			console.log("SB OIDC Token: createUserTokens called");
+			console.log("SB OIDC Token: createUserTokens called with UID: ", uid);
 			const create_user_token = `${url}/api/v2/users/${uid}/tokens`;
 			console.log('SB OIDC Token: creating token using', create_user_token);
 			const options = {
@@ -94,7 +95,7 @@
 				  'Authorization': masterToken
 				}
 			  };
-			  
+			  console.log("SB OIDC Token create request: ", options)
 			  request(options).then(body => {
 				console.log("SB OIDC Token: Token created successfully", body);
 				resolve(body);
@@ -135,6 +136,7 @@
 				console.log('SB OIDC Token: request url:', url, 'slug: ',  urlSlug, 'path: ', req.path);
 				console.log('SB OIDC Token: request original url:', req.originalUrl);
 				const masterToken = req.headers['authorization'];
+				console.log('SB OIDC Master token: ', masterToken);
 					if(err && err === 'UserExists'){
 						response.responseCode = "CLIENT_ERROR";
 						response.responseCode = "400";
