@@ -131,7 +131,7 @@
 				isAdmin: false,
 			}, async (err, user) => {	
 				const urlSlug = req.originalUrl.replace('/api/user/v1/create', '')
-				const url = req.protocol + '://' + req.get('host')+ urlSlug;
+				const url = 'http://' + req.get('host') + urlSlug;
 				console.log('SB OIDC Token: request url substring:',  req.originalUrl.indexOf(constants.createUserURL));
 				console.log('SB OIDC Token: request url:', url, 'slug: ',  urlSlug, 'path: ', req.path);
 				console.log('SB OIDC Token: request original url:', req.originalUrl);
