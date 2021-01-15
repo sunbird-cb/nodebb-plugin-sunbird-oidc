@@ -134,7 +134,9 @@
 				email: email,
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
-			}, async (err, user) => {	
+			}, async (err, user) => {
+				const userSlug = await User.getUserField(user.uid, 'userslug');
+				console.log("'SB OIDC Token: userSlug-", userSlug);	
 				const urlSlug = req.originalUrl.replace('/api/user/v1/create', '')
 				const url = 'http://' + req.get('host') + urlSlug;
 				console.log('SB OIDC Token: request url substring:',  req.originalUrl.indexOf(constants.createUserURL));
@@ -150,16 +152,16 @@
 						response.responseCode = "400";
 						response.params.status = "unsuccessful";
 						response.params.msg = "User already Exists";
-						response.result = { "userId" : user, "userName": req.body.request.username };
+						response.result = { "userId" : user, "userSlug": userSlug, "userName": req.body.request.username };
 						console.log('SB OIDC Token: getting checkUserTokens for already register user');
 						try {
 							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
-							let userToken = lodash.get(tokenData, 'payload.tokens');
-							if(!userToken) {
-								userToken = lodash.get(tokenData, 'payload.token')
-								res.setHeader("nodebb_auth_token", userToken)
-							} else {
+							const userToken = lodash.get(tokenData, 'payload.tokens') || lodash.get(tokenData, 'payload.token');
+							console.log("SB OIDC Token: user tokens here", userToken);
+							if(lodash.isArray(userToken)) {
 								res.setHeader("nodebb_auth_token", userToken[0])
+							} else {
+								res.setHeader("nodebb_auth_token", userToken)
 							}
 							res.json(response);
 						} catch(error) {
@@ -170,7 +172,7 @@
 						response.responseCode = "OK"
 						response.params.status = "successful";		
 						response.params.msg = "User created successful";		
-						response.result = { "userId" : user, "userName": req.body.request.username };
+						response.result = { "userId" : user, "userSlug": userSlug, "userName": req.body.request.username };
 						console.log('SB OIDC Token: getting checkUserTokens for newly register user');
 						try {
 							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
