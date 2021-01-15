@@ -154,8 +154,13 @@
 						console.log('SB OIDC Token: getting checkUserTokens for already register user');
 						try {
 							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
-							const userToken = lodash.get(tokenData, 'payload.tokens');
-							res.setHeader("nodebb_auth_token", userToken[0])
+							let userToken = lodash.get(tokenData, 'payload.tokens');
+							if(!userToken) {
+								userToken = lodash.get(tokenData, 'payload.token')
+								res.setHeader("nodebb_auth_token", userToken)
+							} else {
+								res.setHeader("nodebb_auth_token", userToken[0])
+							}
 							res.json(response);
 						} catch(error) {
 							console.log("SB OIDC Token: Error While checkig the tokens", error)
