@@ -61,8 +61,8 @@
 				if(lodash.isEmpty(tokens)) {
 					try {
 						console.log("SB OIDC TOKENs are empty: ", tokens);
-						const tokens = await Oidc.createUserTokens(masterToken, url, uid);
-						resolve(tokens)
+						const userToken = await Oidc.createUserTokens(masterToken, url, uid);
+						resolve(userToken)
 					}catch(err) {
 						console.log("SB OIDC Token Error: error at createUsertoken promise handler ", err);
 						reject(err);
