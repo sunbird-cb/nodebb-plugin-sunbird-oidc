@@ -76,7 +76,7 @@
 					const responseCode = lodash.get(error, 'status');
 					let message =`SB OIDC Token Error: error at checkUserTokens with status code ${responseCode}  ${error.message}`
 					if (responseCode === 404) {
-						message = `Write api plugin is not enabled. Please enable and try`;
+						message = "Write api plugin is not enabled. Please enable and try";
 					}
 					console.log(message)
 					reject(err);
