@@ -135,6 +135,9 @@
 				console.log('SB OIDC Token: request url substring:',  req.originalUrl.indexOf(constants.createUserURL));
 				console.log('SB OIDC Token: request url:', url, 'slug: ',  urlSlug, 'path: ', req.path);
 				console.log('SB OIDC Token: request original url:', req.originalUrl);
+				console.log('SB OIDC Token: request path url:', req.path);
+				console.log('SB OIDC Token: request url:', req.url);
+				console.log('SB OIDC Token: request protocol url:', req.protocol);
 				const masterToken = req.headers['authorization'];
 				console.log('SB OIDC Master token: ', masterToken);
 					if(err && err === 'UserExists'){
