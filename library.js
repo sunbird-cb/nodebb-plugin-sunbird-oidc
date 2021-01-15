@@ -61,8 +61,8 @@
 				if(lodash.isEmpty(tokens)) {
 					try {
 						console.log("SB OIDC TOKENs are empty: ", tokens);
-						const tokens = await Oidc.createUserTokens(masterToken, url, uid);
-						resolve(tokens)
+						const userToken = await Oidc.createUserTokens(masterToken, url, uid);
+						resolve(userToken)
 					}catch(err) {
 						console.log("SB OIDC Token Error: error at createUsertoken promise handler ", err);
 						reject(err);
@@ -73,7 +73,12 @@
 				}
 			}).catch(error => {
 					const err = {"error": error.message};
-					console.log("SB OIDC Token Error: error at checkUserTokens ", error.message);
+					const responseCode = lodash.get(error, 'status');
+					let message =`SB OIDC Token Error: error at checkUserTokens with status code ${responseCode}  ${error.message}`
+					if (responseCode === 404) {
+						message = "Write api plugin is not enabled. Please enable and try";
+					}
+					console.log(message)
 					reject(err);
 			});
 		})
