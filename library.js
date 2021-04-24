@@ -85,6 +85,7 @@
 			Oidc.login({
 				oAuthid: req.body.request.identifier,
 				username: req.body.request.username,
+				fullname: req.body.request.fullname ? req.body.request.fullname : null,
 				email: email,
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
@@ -343,6 +344,7 @@
 							if (!uid) {
 								User.create({
 									username: payload.username,
+									fullname: payload.fullname ? payload.fullname : null,
 									email: payload.email,
 								}, callback);
 							} else {
