@@ -19,7 +19,7 @@
 	const winston = module.parent.require('winston');
 	console.log('nodebb plugin sunbird oidc working');
 	let lodash = require('lodash');
-
+	const fs = require('fs');
 	const constants = {
 		name: 'sunbird-oidc',
 		callbackURL: '/auth/sunbird-oidc/callback',
@@ -161,6 +161,42 @@
 
 		callback();
 	};
+
+
+	function writeFile(message) {
+		const ts = new Date().toLocaleString();
+		const data = `${ts}: ${message}`;
+		fs.appendFile('./logs/redis.log',`${data}\n`, function(err,res){
+		  if(err) {
+			console.log('SB Error at file write:', err)
+		  }
+		})
+	  }
+
+	Oidc.topicRead =   function(paramas, callback) {
+		if (paramas) {
+		  writeFile('SB:Topic read');
+		  console.log('SB:Topic read ');
+		}
+		callback(null, paramas);
+	  }
+
+	Oidc.categoryRead =  function(paramas, callback) {
+		if (paramas) {
+		  writeFile('SB:Category read ');
+		  console.log('SB:Category read');
+		}
+		callback(null, paramas);
+	  }
+
+	Oidc.topicCreate = function(paramas, callback) {
+		if (paramas) {
+		  writeFile('SB:Topic create api');
+		  console.log('SB:Topic create api ');
+		}
+		callback(null, paramas);
+	  }
+
 
 	Oidc.getAccessTokenFromCode = async function (settings, code) {
 		const options = {
