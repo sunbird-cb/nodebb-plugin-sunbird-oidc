@@ -8,6 +8,7 @@ const { isConditionalExpression } = require('typescript');
 	const db = require.main.require('./src/database');
 	const authenticationController = require.main.require('./src/controllers/authentication');
 	const Settings = require.main.require('./src/settings');
+	const writeApi = require.main.require('./node_modules/nodebb-plugin-write-api/lib/auth.js');
 
 	const url = require('url');
 	const uid = require('uid2');
@@ -20,7 +21,7 @@ const { isConditionalExpression } = require('typescript');
 	const winston = module.parent.require('winston');
 	console.log('nodebb plugin sunbird oidc working');
 	let lodash = require('lodash');
-
+	const fs = require('fs');
 	const constants = {
 		name: 'sunbird-oidc',
 		callbackURL: '/auth/sunbird-oidc/callback',
@@ -43,80 +44,34 @@ const { isConditionalExpression } = require('typescript');
 
 	const Oidc = {};
 
-	Oidc.checkUserTokens = function(masterToken, url, uid) {
+	Oidc.checkUserTokens = function(uid) {
 		return new Promise((resolve, reject) => {
-			console.log("SB OIDC Token: checkUserTokens called with UID: ", uid)
-			const tocken_read_api = `${url}/api/v1/users/${uid}/tokens?_uid=${uid}`;
-			
-			const options = {
-				url: tocken_read_api,
-				method: 'GET',
-				headers: {
-				'Authorization': masterToken
-				}
-			};
-			console.log("SB OIDC Token check request: ", options)	
-			request(options).then(async (body) => {
-				console.log("SB OIDC Token: Success ", body);
-				body = JSON.parse(body)
-				const tokens = lodash.get(body, 'payload.tokens');
-				if(lodash.isEmpty(tokens)) {
-					try {
-						console.log("SB OIDC TOKENs are empty: ", tokens);
-						const userToken = await Oidc.createUserTokens(masterToken, url, uid);
-						resolve(userToken)
-					}catch(err) {
-						console.log("SB OIDC Token Error: error at createUsertoken promise handler ", err);
-						reject(err);
-					}
-				}else {
-					console.log("SB OIDC Token already present: ", body);
-					resolve(body);
-				}
-			}).catch(error => {
-					const err = {"error": error.message};
-					const responseCode = lodash.get(error, 'status');
-					let message =`SB OIDC Token Error: error at checkUserTokens with status code ${responseCode}  ${error.message}`
-					if (responseCode === 404) {
-						message = "Write api plugin is not enabled. Please enable and try";
-					}
-					console.log(message)
+			writeApi.getTokens(uid, (err, tokens) => {
+				if(err){
+					console.log('SB OIDC Token: Error while reading user token', err.message)
 					reject(err);
-			});
+				}
+				if(lodash.isEmpty(tokens)) {
+					console.log('SB OIDC Token: No tokens yet, creating new user token')
+					writeApi.generateToken(uid, (error, newToken) => {
+						if(error){
+							console.log('SB OIDC Token: Error while creating new user token', error.message)
+							reject(error);
+						}
+						console.log('SB OIDC Token:New token created successfully')
+						resolve(newToken);
+					})
+				} else {
+					console.log('SB OIDC Token: user token already created')
+					resolve(tokens[0]);
+				}
+			});	
 		})
 	}
 
-	Oidc.createUserTokens = function(masterToken, url, uid) {
-		return new Promise((resolve, reject) =>{
-			console.log("SB OIDC Token: createUserTokens called with UID: ", uid);
-			const create_user_token = `${url}/api/v2/users/${uid}/tokens`;
-			console.log('SB OIDC Token: creating token using', create_user_token);
-			const options = {
-				url: create_user_token,
-				method: 'POST',
-				body: {
-					"_uid": uid
-				},
-				json: true,
-				headers: {
-				  'Authorization': masterToken
-				}
-			  };
-			  console.log("SB OIDC Token create request: ", options)
-			  request(options).then(body => {
-				console.log("SB OIDC Token: Token created successfully", body);
-				resolve(body);
-			  }).catch(error => {
-				console.log("SB OIDC Token Error: error at createUserTokens ", error.message);
-				  const err = {
-					  error: error.message
-				  }
-				  reject(err)
-			  })
-		})
-	}
 
 	Oidc.createUser = async function (req, res, next) {
+		console.log("SB OIDC: Entry Log for ", req.originalUrl)
 		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
 		var response = {
 		  "id": "api.discussions.user.create",
@@ -140,23 +95,18 @@ const { isConditionalExpression } = require('typescript');
 			Oidc.login({
 				oAuthid: req.body.request.identifier,
 				username: userName,
+				fullname: req.body.request.fullname ? req.body.request.fullname : null,
 				email: email,
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
 			}, async (err, user) => {
 				console.log('user info', user)
 				const userSlug = await User.getUserField(user.uid, 'userslug');
-				console.log("'SB OIDC Token: userSlug-", userSlug);	
-				const urlSlug = req.originalUrl.replace('/api/user/v1/create', '')
-				const url = 'http://' + req.get('host') + urlSlug;
-				console.log('SB OIDC Token: request url substring:',  req.originalUrl.indexOf(constants.createUserURL));
-				console.log('SB OIDC Token: request url:', url, 'slug: ',  urlSlug, 'path: ', req.path);
+				console.log("'SB OIDC Token: userSlug-", userSlug);
 				console.log('SB OIDC Token: request original url:', req.originalUrl);
 				console.log('SB OIDC Token: request path url:', req.path);
 				console.log('SB OIDC Token: request url:', req.url);
 				console.log('SB OIDC Token: request protocol url:', req.protocol);
-				const masterToken = req.headers['authorization'];
-				console.log('SB OIDC Master token: ', masterToken);
 					if(err && err === 'UserExists'){
 						response.responseCode = "CLIENT_ERROR";
 						response.responseCode = "400";
@@ -165,19 +115,13 @@ const { isConditionalExpression } = require('typescript');
 						response.result = { "userId" : user, "userSlug": userSlug, "userName": req.body.request.username };
 						console.log('SB OIDC Token: getting checkUserTokens for already register user');
 						try {
-							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
-							const userToken = lodash.get(tokenData, 'payload.tokens') || lodash.get(tokenData, 'payload.token');
+							const userToken = await Oidc.checkUserTokens(user.uid);
 							console.log("SB OIDC Token: user tokens here", userToken);
-							if(lodash.isArray(userToken)) {
-								res.setHeader("nodebb_auth_token", userToken[0])
-							} else {
-								res.setHeader("nodebb_auth_token", userToken)
-							}
+							res.setHeader("nodebb_auth_token", userToken);
 							res.json(response);
 						} catch(error) {
 							console.log("SB OIDC Token: Error While checkig the tokens", error)
-						}
-						
+						}						
 					}else if(user){
 						response.responseCode = "OK"
 						response.params.status = "successful";		
@@ -185,8 +129,7 @@ const { isConditionalExpression } = require('typescript');
 						response.result = { "userId" : user, "userSlug": userSlug, "userName": req.body.request.username };
 						console.log('SB OIDC Token: getting checkUserTokens for newly register user');
 						try {
-							const tokenData = await Oidc.checkUserTokens(masterToken, url, user.uid);
-							const userToken = lodash.get(tokenData, 'payload.token');
+							const userToken = await Oidc.checkUserTokens(user.uid);
 							res.setHeader("nodebb_auth_token", userToken)
 							res.json(response);
 						}catch (error) {
@@ -194,6 +137,7 @@ const { isConditionalExpression } = require('typescript');
 						}
 						
 					}else{
+						console.log("SB OIDC: Error Log for ", req.originalUrl)
 						response.responseCode = "SERVER_ERROR"
 						response.responseCode = "400"
 						console.log(err);
@@ -229,6 +173,42 @@ const { isConditionalExpression } = require('typescript');
 
 		callback();
 	};
+
+
+	function writeFile(message) {
+		const ts = new Date().toLocaleString();
+		const data = `${ts}: ${message}`;
+		fs.appendFile('./logs/redis.log',`${data}\n`, function(err,res){
+		  if(err) {
+			console.log('SB Error at file write:', err)
+		  }
+		})
+	  }
+
+	Oidc.topicRead =   function(paramas, callback) {
+		if (paramas) {
+		  writeFile('SB:Topic read');
+		  console.log('SB:Topic read ');
+		}
+		callback(null, paramas);
+	  }
+
+	Oidc.categoryRead =  function(paramas, callback) {
+		if (paramas) {
+		  writeFile('SB:Category read ');
+		  console.log('SB:Category read');
+		}
+		callback(null, paramas);
+	  }
+
+	Oidc.topicCreate = function(paramas, callback) {
+		if (paramas) {
+		  writeFile('SB:Topic create api');
+		  console.log('SB:Topic create api ');
+		}
+		callback(null, paramas);
+	  }
+
 
 	Oidc.getAccessTokenFromCode = async function (settings, code) {
 		const options = {
@@ -413,6 +393,7 @@ const { isConditionalExpression } = require('typescript');
 							if (!uid) {
 								User.create({
 									username: payload.username,
+									fullname: payload.fullname ? payload.fullname : null,
 									email: payload.email,
 								}, callback);
 							} else {

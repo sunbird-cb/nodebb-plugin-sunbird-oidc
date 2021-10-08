@@ -33,7 +33,16 @@
     {
       "hook": "filter:user.logout",
       "method": "redirectLogout"
-    }
+    },
+    {
+      "hook": "filter:category.getFields",
+      "method": "categoryRead"
+    },
+    {
+      "hook": "filter:topic.getFields",
+      "method": "topicRead"
+    },
+    {"hook": "filter:topic.create", "method": "topicCreate" }
   ],
   "acpScripts": [
     "static/lib/admin.js"
