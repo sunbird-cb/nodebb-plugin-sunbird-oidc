@@ -1,7 +1,6 @@
 'use strict';
 
 const { isConditionalExpression } = require('typescript');
-
 ((module) => {
 	const User = require.main.require('./src/user');
 	const Groups = require.main.require('./src/groups');
@@ -100,7 +99,6 @@ const { isConditionalExpression } = require('typescript');
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
 			}, async (err, user) => {
-				console.log('user info', user)
 				const userSlug = await User.getUserField(user.uid, 'userslug');
 				console.log("'SB OIDC Token: userSlug-", userSlug);
 				console.log('SB OIDC Token: request original url:', req.originalUrl);
@@ -377,7 +375,6 @@ const { isConditionalExpression } = require('typescript');
 			(callback) => Oidc.getUidByOAuthid(payload.oAuthid, callback),
 			// Skip if we found the user in the pevious step or create the user
 			function (uid, callback) {
-				console.log('uid', uid, payload)
 				if (uid !== null) {
 					// Existing user
 					callback("UserExists", uid);
@@ -434,7 +431,6 @@ const { isConditionalExpression } = require('typescript');
 				}
 			},
 		], function (err, uid) {
-			console.log('error msg', err, uid)
 			if (err && err !== 'UserExists') {
 				return callback(err);
 			}
@@ -445,7 +441,6 @@ const { isConditionalExpression } = require('typescript');
 	};
 
 	Oidc.getUidByOAuthid = function (oAuthid, callback) {
-		console.log('username', constants.name)
 		db.getObjectField(constants.name + 'Id:uid', oAuthid, (err, uid) => {
 			if (err) {
 				return callback(err);
