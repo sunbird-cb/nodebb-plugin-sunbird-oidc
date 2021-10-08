@@ -1,6 +1,5 @@
 'use strict';
 
-const { isConditionalExpression } = require('typescript');
 ((module) => {
 	const User = require.main.require('./src/user');
 	const Groups = require.main.require('./src/groups');
