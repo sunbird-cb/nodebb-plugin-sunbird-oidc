@@ -1,5 +1,7 @@
 'use strict';
 
+const { isConditionalExpression } = require('typescript');
+
 ((module) => {
 	const User = require.main.require('./src/user');
 	const Groups = require.main.require('./src/groups');
@@ -127,14 +129,22 @@
 		}
 		if(req.body && req.body.request && req.body.request.username && req.body.request.identifier){
 			const settings = constants.pluginSettings.getWrapper();
-			var email = req.body.request.username + '@' + settings.emailDomain;			
+			var email = req.body.request.username;	
+			var mailformat = /\S+@\S/;
+			var userName = req.body.request.username;
+			if((req.body.request.username).match(mailformat))
+				userName = (req.body.request.username).split('@')[0];
+			} else {
+				email = req.body.request.username + '@' + settings.emailDomain;
+			}
 			Oidc.login({
 				oAuthid: req.body.request.identifier,
-				username: req.body.request.username,
+				username: userName,
 				email: email,
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
 				isAdmin: false,
 			}, async (err, user) => {
+				console.log('user info', user)
 				const userSlug = await User.getUserField(user.uid, 'userslug');
 				console.log("'SB OIDC Token: userSlug-", userSlug);	
 				const urlSlug = req.originalUrl.replace('/api/user/v1/create', '')
@@ -387,6 +397,7 @@
 			(callback) => Oidc.getUidByOAuthid(payload.oAuthid, callback),
 			// Skip if we found the user in the pevious step or create the user
 			function (uid, callback) {
+				console.log('uid', uid, payload)
 				if (uid !== null) {
 					// Existing user
 					callback("UserExists", uid);
@@ -442,6 +453,7 @@
 				}
 			},
 		], function (err, uid) {
+			console.log('error msg', err, uid)
 			if (err && err !== 'UserExists') {
 				return callback(err);
 			}
@@ -452,6 +464,7 @@
 	};
 
 	Oidc.getUidByOAuthid = function (oAuthid, callback) {
+		console.log('username', constants.name)
 		db.getObjectField(constants.name + 'Id:uid', oAuthid, (err, uid) => {
 			if (err) {
 				return callback(err);
