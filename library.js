@@ -69,6 +69,7 @@
 
 
 	Oidc.createUser = async function (req, res, next) {
+		console.log("SB OIDC: Entry Log for ", req.originalUrl)
 		var msgid = (req.body.params && req.body.params.msgid)?req.body.params.msgid:"";
 		var response = {
 		  "id": "api.discussions.user.create",
@@ -126,6 +127,7 @@
 						}
 						
 					}else{
+						console.log("SB OIDC: Error Log for ", req.originalUrl)
 						response.responseCode = "SERVER_ERROR"
 						response.responseCode = "400"
 						console.log(err);
