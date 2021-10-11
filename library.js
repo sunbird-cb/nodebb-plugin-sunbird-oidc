@@ -82,10 +82,17 @@
 		}
 		if(req.body && req.body.request && req.body.request.username && req.body.request.identifier){
 			const settings = constants.pluginSettings.getWrapper();
-			var email = req.body.request.username + '@' + settings.emailDomain;			
+			var email = req.body.request.username;	
+			var mailformat = /\S+@\S/;
+			var userName = req.body.request.username;
+			if((req.body.request.username).match(mailformat))
+				userName = (req.body.request.username).split('@')[0];
+			} else {
+				email = req.body.request.username + '@' + settings.emailDomain;
+			}
 			Oidc.login({
 				oAuthid: req.body.request.identifier,
-				username: req.body.request.username,
+				username: userName,
 				fullname: req.body.request.fullname ? req.body.request.fullname : null,
 				email: email,
 				rolesEnabled: settings.rolesClaim && settings.rolesClaim.length !== 0,
