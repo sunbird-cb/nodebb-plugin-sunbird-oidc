@@ -85,7 +85,7 @@
 			var email = req.body.request.username;	
 			var mailformat = /\S+@\S/;
 			var userName = req.body.request.username;
-			if((req.body.request.username).match(mailformat))
+			if((req.body.request.username).match(mailformat)) {
 				userName = (req.body.request.username).split('@')[0];
 			} else {
 				email = req.body.request.username + '@' + settings.emailDomain;
