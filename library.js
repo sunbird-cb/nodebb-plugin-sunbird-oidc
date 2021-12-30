@@ -28,15 +28,15 @@
 		pluginSettingsURL: '/admin/plugins/fusionauth-oidc',
 		pluginSettings: new Settings('fusionauth-oidc', '1.0.0', {
 			// Default settings
-			clientId: null,
-			clientSecret: null,
+			clientId: "",
+			clientSecret: "",
 			emailClaim: 'email',
-			discoveryBaseURL: null,
-			authorizationEndpoint: null,
-			tokenEndpoint: null,
-			ssoTokenEndpoint: null,
-			userInfoEndpoint: null,
-			emailDomain: null
+			discoveryBaseURL: "",
+			authorizationEndpoint: "",
+			tokenEndpoint: "",
+			ssoTokenEndpoint: "",
+			userInfoEndpoint: "",
+			emailDomain: ""
 		}, false, false),
 	};
 
