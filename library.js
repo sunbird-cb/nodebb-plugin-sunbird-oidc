@@ -110,11 +110,11 @@
 						response.params.status = "unsuccessful";
 						response.params.msg = "User already Exists";
 						response.result = { "userId" : user, "userSlug": userSlug, "userName": req.body.request.username };
-						console.log('SB OIDC Token: getting checkUserTokens for already register user');
+						// console.log('SB OIDC Token: getting checkUserTokens for already register user');
 						try {
-							const userToken = await Oidc.checkUserTokens(user.uid);
-							console.log("SB OIDC Token: user tokens here", userToken);
-							res.setHeader("nodebb_auth_token", userToken);
+							// const userToken = await Oidc.checkUserTokens(user.uid);
+							// console.log("SB OIDC Token: user tokens here", userToken);
+							// res.setHeader("nodebb_auth_token", userToken);
 							res.json(response);
 						} catch(error) {
 							console.log("SB OIDC Token: Error While checkig the tokens", error)
@@ -124,10 +124,10 @@
 						response.params.status = "successful";		
 						response.params.msg = "User created successful";		
 						response.result = { "userId" : user, "userSlug": userSlug, "userName": req.body.request.username };
-						console.log('SB OIDC Token: getting checkUserTokens for newly register user');
+						// console.log('SB OIDC Token: getting checkUserTokens for newly register user');
 						try {
-							const userToken = await Oidc.checkUserTokens(user.uid);
-							res.setHeader("nodebb_auth_token", userToken)
+							// const userToken = await Oidc.checkUserTokens(user.uid);
+							// res.setHeader("nodebb_auth_token", userToken)
 							res.json(response);
 						}catch (error) {
 							console.log("SB OIDC Token: Error While checkig the tokens", error)
