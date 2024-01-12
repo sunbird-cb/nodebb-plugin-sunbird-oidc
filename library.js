@@ -399,7 +399,7 @@
 						function (uid, callback) {
 							// Save provider-specific information to the user
 							User.setUserField(uid, constants.name + 'Id', payload.oAuthid);
-							db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
+							//db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
 							callback(null, uid);
 						},
 					], callback);
