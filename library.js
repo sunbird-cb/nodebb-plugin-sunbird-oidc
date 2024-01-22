@@ -371,13 +371,10 @@
 	Oidc.login = function (payload, callback) {
 		async.waterfall([
 			// Lookup user by existing oauthid
-			(callback) => Oidc.getUidByOAuthid(payload.oAuthid, callback),
+			//(callback) => Oidc.getUidByOAuthid(payload.oAuthid, callback),
 			// Skip if we found the user in the pevious step or create the user
 			function (uid, callback) {
-				if (uid !== null) {
-					// Existing user
-					callback("UserExists", uid);
-				} else {
+				
 					// New User
 					if (!payload.email) {
 						return callback(new Error('The email was missing from the user, we cannot log them in.'));
@@ -399,11 +396,11 @@
 						function (uid, callback) {
 							// Save provider-specific information to the user
 							User.setUserField(uid, constants.name + 'Id', payload.oAuthid);
-							db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
+						//	db.setObjectField(constants.name + 'Id:uid', payload.oAuthid, uid);
 							callback(null, uid);
 						},
 					], callback);
-				}
+				
 			},
 			// Get the users membership status to admins
 			(uid, callback) => Groups.isMember(uid, 'administrators', (err, isMember) => {
